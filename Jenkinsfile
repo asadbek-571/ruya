@@ -10,7 +10,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 // Checkout the latest code from the prod branch
-                git branch: 'prod', url: 'https://github.com/asadbek-571/ruya.git'
+               git 'https://github.com/your-repo/project.git'
             }
         }
 
