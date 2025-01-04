@@ -14,10 +14,13 @@ import java.io.Serializable;
 @Getter
 @Setter
 public class ReqLogin implements Serializable {
+
     @Schema(description = "username or email", example = "test@gmail.com")
     private String username;
+
     @Schema(description = "encrypt password", example = "HJjkasndujsekrn...")
     private String password;
+
     @Schema(description = "COMPANY or CANDIDATE", example = "CANDIDATE")
     private UserRoleType userRoleType;
 }
