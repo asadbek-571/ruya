@@ -1,0 +1,52 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://45.130.148.207:5432/ruya
+    username: postgres
+    password: 2001
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      poolName: RuyaMobHikari
+      auto-commit: false
+      connection-timeout: 10000  # maximum number of milliseconds that a client will wait for a connection
+      maximum-pool-size: 50   # maximum pool size
+      max-lifetime: 300000   # maximum lifetime in milliseconds of a connection in the pool after it is closed.
+      idle-timeout: 60000
+      keepalive-time: 30000
+      minimum-idle: 10
+  jpa:
+    show-sql: off
+    hibernate:
+      ddl-auto: update
+    generate-ddl: on
+    properties:
+      javax:
+        persistence:
+          query:
+            timeout: 30000
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        enable_lazy_load_no_trans: true
+        generate_statistics: false
+        jdbc:
+          lob:
+            non_contextual_creation: true
+        connection:
+          autocommit: false
+          provider_disables_autocommit: true
+        session:
+          events:
+            log:
+              LOG_QUERIES_SLOWER_THAN_MS: 1000
+    open-in-view: false
+
+auth:
+  users:
+    - username: mob-test
+      password: kqB86eFAYTZdMpp3
+      role: HIDE
+
+jwt:
+  secret:
+    key: cdeb83a549b99151d5d6ed600dc1d72250029707d329bdf722dee1874a649e77
+    access-time: 3600000 # 1 hour
+    refresh-time: 365 # 365 day
