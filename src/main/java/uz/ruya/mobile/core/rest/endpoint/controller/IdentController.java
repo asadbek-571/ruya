@@ -67,6 +67,21 @@ public class IdentController implements IdentEndpoint {
         }
     }
 
+
+    @Override
+    public ResponseEntity<?> signUp(ReqSignUp request) {
+        try {
+            var result = service.signUp(request.getIdentity(), request.getFirstName(), request.getLastName(), request.getEmail(), request.getPassword());
+            return GenericResponse.success(40000, "Success", result);
+        } catch (SignInitNotFoundException | SignInitExpireException | SignInitStatusIncorrectException |
+                 DecodeDataException th) {
+            return GenericResponse.error(20000, th.getMessage());
+        } catch (Throwable th) {
+            Logger.error(th);
+            return GenericResponse.error(20000, messageSingleton.getMessage(MessageKey.UNKNOWN_ERROR));
+        }
+    }
+
     @Override
     public ResponseEntity<?> resendCode(ReqSignCodeResend code) {
         try {

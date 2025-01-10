@@ -1,11 +1,11 @@
 package uz.ruya.mobile.core.rest.peyload.req.auth;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 /**
  Asadbek Kushakov 1/3/2025 10:36 AM 
@@ -15,11 +15,10 @@ import java.io.Serializable;
 @ToString
 public class ReqSignUp implements Serializable {
 
-    @Schema(description = "user fullname", example = "Jon Doe")
-    private String fullName;
-    @Schema(description = "email", example = "test@gmail.com")
-    private String username;
-    @Schema(description = "encrypt password", example = "HJjkasndujsekrn...")
+    private UUID identity;
+    private String firstName;
+    private String lastName;
+    private String email;
     private String password;
 
 }

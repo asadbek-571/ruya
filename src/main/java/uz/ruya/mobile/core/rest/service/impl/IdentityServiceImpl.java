@@ -134,7 +134,7 @@ public class IdentityServiceImpl implements IdentityService {
     }
 
     @Override
-    public ResSignUp signUp(UUID identity, String phone, String password) throws SignInitNotFoundException, SignInitExpireException, SignInitStatusIncorrectException, DecodeDataException, UserExistException, RoleNotFoundException, SignInitPasswordValidationException {
+    public ResSignUp signUp(UUID identity, String firstName, String lastName, String email, String password) throws SignInitNotFoundException, SignInitExpireException, SignInitStatusIncorrectException, DecodeDataException, UserExistException, RoleNotFoundException, SignInitPasswordValidationException {
 
         SignInit sign = this.checkSign(identity);
 

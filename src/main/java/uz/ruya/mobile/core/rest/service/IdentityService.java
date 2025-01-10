@@ -49,7 +49,9 @@ public interface IdentityService {
 
     ResSignUp signUp(
             UUID identity,
-            String phone,
+            String firstName,
+            String lastName,
+            String email,
             String password
     ) throws
             SignInitNotFoundException,

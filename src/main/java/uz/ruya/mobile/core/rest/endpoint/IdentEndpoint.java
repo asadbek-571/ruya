@@ -46,6 +46,15 @@ public interface IdentEndpoint {
     @PostMapping(BaseURI.IN)
     ResponseEntity<?> signIn(@RequestBody ReqSignIn request);
 
+    @DocMethodAuth(
+            summary = "Sign Up",
+            responseCode = "200",
+            description = "Operation success",
+            content = @Content(schema = @Schema(implementation = ResSignUp.class))
+    )
+    @PostMapping(BaseURI.UP)
+    ResponseEntity<?> signUp(@RequestBody ReqSignUp request);
+
     @DocMethod(
             summary = "Sign user (resend SMS)",
             responseCode = "200",
