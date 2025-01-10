@@ -19,7 +19,4 @@ public class ResSignUp implements Serializable {
     @JsonProperty("message")
     private String message;
 
-    @JsonProperty("isReg")
-    private Boolean isReg = Boolean.FALSE;
-
 }

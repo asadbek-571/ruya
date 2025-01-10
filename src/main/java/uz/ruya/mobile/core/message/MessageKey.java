@@ -13,6 +13,8 @@ public enum MessageKey {
     DELETED("deleted", "Успешно удалено"),
     CHANGED("changed", "Успешно изменено"),
     CODE_TIMED_OUT("code.timed.out", "Время ввода кода истекло"),
+    USER_BLOCKED_CONTACT_ADMINISTRATOR("user.blocked.connect.administrator", "Пользователь блокирован. Обратитесь к администратору"),
+    VERIFICATION_STATUS_NOT_CORRECT("verification.status.not.correct", "Статус верификации не корректен"),
     ECOM("ecom", "ecom"),
     ECOM_XAZNA("ecom.xazna", "ECOM Xazna"),
     PINFL("pinfl", "PINFL"),

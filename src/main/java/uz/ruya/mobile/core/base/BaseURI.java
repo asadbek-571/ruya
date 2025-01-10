@@ -9,6 +9,12 @@ public interface BaseURI {
     String API1 = "/api/v1";
     String API2 = "/api/v2";
 
+    String AUTH = "/auth";
+    String SIGN = "/sign";
+    String CHECK = "/check";
+    String VERIFY = "/verify";
+    String IN = "/in";
+    String UP = "/up";
     String ME = "/me";
     String PROFILE = "/profile";
     String USER = "/user";
@@ -46,7 +52,6 @@ public interface BaseURI {
     String REMOVE = "/remove";
     String BLOCK = "/block";
     String UNBLOCK = "/unblock";
-    String CHECK = "/check";
     String EDIT = "/edit";
     String OWNER = "/owner";
     String CONFIRM = "/confirm";
@@ -67,6 +72,7 @@ public interface BaseURI {
     String PREPARE = "/prepare";
     String TRANSFER = "/transfer";
     String RESEND = "/resend";
+    String AGREEMENT = "/agreement";
     String RATE = "/rate";
     String CROSS = "/cross";
     String PARAM = "/param";
@@ -223,4 +229,11 @@ public interface BaseURI {
     String WORKER = "/worker";
     String EMPLOYER = "/employer";
     String ADS = "/ads";
+
+    String POPUP_ALERT = "/popup-alert";
+    String ANNOUNCEMENT = "/announcement";
+    String PASSWORD = "/password";
+    String RESET = "/reset";
+    String TOKEN = "/token";
+    String SCAN = "/scan";
 }

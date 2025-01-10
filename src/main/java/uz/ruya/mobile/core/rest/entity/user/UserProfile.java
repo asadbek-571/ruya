@@ -8,9 +8,13 @@ import uz.ruya.mobile.core.base.BaseEntity;
 import uz.ruya.mobile.core.base.BaseScheme;
 import uz.ruya.mobile.core.config.core.Lang;
 import uz.ruya.mobile.core.config.utils.CoreUtils;
+import uz.ruya.mobile.core.rest.entity.announcement.Announcement;
+import uz.ruya.mobile.core.rest.entity.application.Application;
 import uz.ruya.mobile.core.rest.enums.BaseStatus;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -81,6 +85,18 @@ public class UserProfile extends BaseEntity {
 
     @Column(name = "blocked_cause")
     private String blockedCause;
+
+    @OneToMany(mappedBy = "user")
+    private List<UserEducation> educations = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user")
+    private List<UserExperience> experiences = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user")
+    private List<Announcement> announcements = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user")
+    private List<Application> applications = new ArrayList<>();
 
     public Boolean getIsEnableEmail() {
         return CoreUtils.isPresent(isEnableEmail) && isEnableEmail;

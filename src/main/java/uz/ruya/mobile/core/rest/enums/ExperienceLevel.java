@@ -1,10 +1,12 @@
 package uz.ruya.mobile.core.rest.enums;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public enum ExperienceLevel {
 
     ZERO_EXPERIENCE("0 Years", "0年"),

@@ -48,12 +48,12 @@ public class BeforeFilter extends OncePerRequestFilter {
 
     private static final List<String> WITHOUT_TOKEN = List.of(
             "/v3/api-docs",
-            "/api/v1/translate/text",
-            "/api/v1/document/get/one",
-            "/api/v1/info/events/get",
-            "/api/v1/ident/signup",
-            "/api/v1/ident/login",
-            "/api/v1/ident/get/encrypt"
+            "/api/v1/auth/sign/check/user",
+            "/api/v1/auth/sign/user/verify",
+            "/api/v1/auth/sign/in",
+            "/api/v1/auth/sign/code/resend",
+            "/api/v1/auth/sign/agreement",
+            "/api/v1/auth/sign/encrypt/password"
     );
 
     @Override
@@ -149,10 +149,10 @@ public class BeforeFilter extends OncePerRequestFilter {
         forThreadContextMap.put("APP-VERSION", X_APP_VERSION);
 
         if (!WITHOUT_TOKEN.contains(URI)) {
-            if (CoreUtils.isPresent(AUTHORIZATION)) {
+            if (CoreUtils.isPresent(X_AUTH_TOKEN)) {
                 try {
 
-                    UserDBOMain user = identityService.validateToken(AUTHORIZATION.replace("Bearer",""));
+                    UserDBOMain user = identityService.validateToken(X_AUTH_TOKEN);
 
                     if (CoreUtils.isEmpty(user)) {
                         throw new InvalidTokenException(20402, messageSingleton.getMessage(MessageKey.INVALID_TOKEN));

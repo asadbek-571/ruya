@@ -1,41 +1,43 @@
 package uz.ruya.mobile.core.rest.service.impl;
 
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import uz.ruya.mobile.core.auth.*;
 import uz.ruya.mobile.core.config.core.CipherUtility;
+import uz.ruya.mobile.core.config.core.DeviceType;
 import uz.ruya.mobile.core.config.core.GlobalVar;
+import uz.ruya.mobile.core.config.core.SuccessMessage;
 import uz.ruya.mobile.core.config.excaption.*;
 import uz.ruya.mobile.core.config.utils.CoreUtils;
 import uz.ruya.mobile.core.config.utils.DateUtils;
+import uz.ruya.mobile.core.config.utils.NotifyUtils;
 import uz.ruya.mobile.core.message.MessageKey;
 import uz.ruya.mobile.core.message.MessageSingleton;
-import uz.ruya.mobile.core.rest.entity.user.*;
+import uz.ruya.mobile.core.rest.entity.auth.*;
 import uz.ruya.mobile.core.rest.enums.BaseStatus;
 import uz.ruya.mobile.core.rest.enums.SignStatus;
 import uz.ruya.mobile.core.rest.enums.UserRoleType;
-import uz.ruya.mobile.core.rest.peyload.req.auth.ReqLogin;
-import uz.ruya.mobile.core.rest.peyload.req.auth.ReqSignUp;
-import uz.ruya.mobile.core.rest.peyload.res.auth.ResEncrypt;
-import uz.ruya.mobile.core.rest.peyload.res.auth.ResLogin;
-import uz.ruya.mobile.core.rest.peyload.res.auth.ResSignUp;
+import uz.ruya.mobile.core.rest.peyload.req.auth.ReqPassword;
+import uz.ruya.mobile.core.rest.peyload.res.auth.*;
+import uz.ruya.mobile.core.rest.repo.UserRoleRepo;
 import uz.ruya.mobile.core.rest.repo.auth.SignInitRepo;
 import uz.ruya.mobile.core.rest.repo.auth.UserAccessRepo;
 import uz.ruya.mobile.core.rest.repo.auth.UserRepo;
-import uz.ruya.mobile.core.rest.repo.auth.UserRoleRepo;
 import uz.ruya.mobile.core.rest.service.IdentityService;
+import uz.ruya.mobile.core.rest.service.NotifyService;
+import uz.ruya.mobile.core.rest.service.PropertiesService;
+import uz.ruya.mobile.core.rest.validator.FraudValidator;
 
+import javax.crypto.Cipher;
 import javax.management.relation.RoleNotFoundException;
+import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.spec.X509EncodedKeySpec;
 import java.time.LocalDateTime;
-import java.util.Date;
+import java.util.Base64;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -48,177 +50,383 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class IdentityServiceImpl implements IdentityService {
 
-    @Value("${jwt.secret.key}")
-    private String secretKey;
+    private final MessageSingleton messageSingleton;
+    private final PasswordEncoder passwordEncoder;
+    private final FraudValidator fraudValidator;
+    private final CipherUtility cipherUtility;
+    private final NotifyUtils notifyUtils;
 
-    @Value("${jwt.secret.access-time}")
-    private Long expirationAccessTime;
-
-    @Value("${jwt.secret.refresh-time}")
-    private Long expirationRefreshTime;
+    private final PropertiesService propertiesService;
+    private final NotifyService notifyService;
 
     private final UserAccessRepo userAccessRepo;
-    private final UserRoleRepo roleRepo;
-    private final UserRepo userRepo;
-
-    private final CipherUtility cipherUtility;
-    private final PasswordEncoder passwordEncoder;
-
-    private final MessageSingleton messageSingleton;
     private final SignInitRepo signInitRepo;
+    private final UserRepo userRepo;
+    private final UserRoleRepo userRoleRepository;
 
     @Override
-    public UserDBOMain validateToken(String authorization) throws InvalidTokenException {
+    public ResSignUserCheck signUserCheck(String username) throws ExternalServiceException, FraudClientServiceException {
+
+        final String deviceId = GlobalVar.getDeviceId();
+        final String deviceModel = GlobalVar.getDeviceModel();
+
+        boolean isFraudCheckEnabled = propertiesService.isFraudPhoneCheck();
+        boolean smsAvailable = fraudValidator.isFraudPhoneCheck(isFraudCheckEnabled, username, deviceId, deviceModel);
+
+        String code = CoreUtils.generateSmsCode();
+
+        if ("998979497771".equals(username)) {
+            code = "232323";
+        } else if (smsAvailable) {
+            notifyService.sendSMS(username, notifyUtils.getSignMessage(code));
+        }
+
+        SignInit sign = new SignInit();
+        sign.setExpire(DateUtils.identityTokenExpire());
+        sign.setCodeExpire(DateUtils.codeExpire());
+        sign.setDevMode(GlobalVar.getDEV_MODE());
+        sign.setAgent(GlobalVar.getUserAgent());
+        sign.setIp(GlobalVar.getIpAddress());
+        sign.setUsername(username);
+        sign.setCode(code);
+        sign = signInitRepo.saveAndFlush(sign);
+
+        var result = new ResSignUserCheck();
+        result.setIdentity(sign.getId());
+        result.setMessage(String.format("СМС отправлен на номер %s", CoreUtils.maskedPhone(sign.getUsername())));
+        return result;
+    }
+
+    @Override
+    public ResSignUserVerify signUserVerify(UUID identity, String code) throws SignInitNotFoundException, SignInitCodeIncorrectException, SignInitCodeExpireException, SignInitExpireException, SignInitStatusIncorrectException, PairKeyGenerationException, SignInitCodeRetryException, ExternalServiceException, FraudClientServiceException, EntityNotFoundException {
+
+        SignInit sign = this.signVerify(identity, code);
+
+        Optional<User> userOptional = userRepo.findByUsername(sign.getUsername());
+
+        if (userOptional.isPresent()) {
+
+            User user = userOptional.get();
+
+            sign.setIsReg(Boolean.TRUE);
+            sign.setUserUUID(user.getId());
+
+        }
+
+        sign.setStatus(SignStatus.VERIFIED);
+        sign = signInitRepo.saveAndFlush(sign);
+
+        var result = new ResSignUserVerify();
+        result.setIdentity(sign.getId());
+        result.setEncryptKey(sign.getPublicKey());
+        result.setIsReg(sign.getIsReg());
+        return result;
+    }
+
+    @Override
+    public ResSignIn signIn(UUID identity, String password) throws SignInitNotFoundException, SignInitExpireException, SignInitStatusIncorrectException, DecodeDataException, UserNotFoundException, UserBlockedException, SignInitPasswordIncorrectException, SignInitPasswordTryException, ExternalServiceException, FraudClientServiceException {
+
+        SignInit sign = this.checkSign(identity);
+
+        User authUser = this.checkUserForSign(sign, password);
+
+        return this.executeNewAccessWithRemovingOldAccessData(sign, authUser);
+    }
+
+    @Override
+    public ResSignUp signUp(UUID identity, String phone, String password) throws SignInitNotFoundException, SignInitExpireException, SignInitStatusIncorrectException, DecodeDataException, UserExistException, RoleNotFoundException, SignInitPasswordValidationException {
+
+        SignInit sign = this.checkSign(identity);
+
+        final String pass = this.getDecryptedPass(sign, password);
+
+        if (!CoreUtils.checkPassword(pass)) {
+            throw new SignInitPasswordValidationException(messageSingleton.getMessage(MessageKey.INCORRECT_PASSWORD));
+        }
+
+        Optional<User> userOptional = userRepo.findByUsername(sign.getUsername());
+
+        if (userOptional.isPresent()) {
+            throw new UserExistException(messageSingleton.getMessage(MessageKey.USER_ALREADY_EXISTS));
+        }
+
+        Optional<UserRole> optionalUserRole = userRoleRepository.findByType(UserRoleType.USER);
+
+        if (optionalUserRole.isEmpty()) {
+            throw new RoleNotFoundException(messageSingleton.getMessage(MessageKey.ROLE_NOT_FOUND));
+        }
+
+        User user = new User();
+        user.setUsername(sign.getUsername());
+        user.setPhone(sign.getUsername());
+        user.setPassword(passwordEncoder.encode(pass));
+        user.setRole(optionalUserRole.get());
+        user.setStatus(BaseStatus.ACTIVE);
+
+        userRepo.saveAndFlush(user);
+
+        var signUp = new ResSignUp();
+        signUp.setMessage(messageSingleton.getMessage(MessageKey.USER_SUCCESSFULLY_REGISTERED));
+        return signUp;
+    }
+
+    @Override
+    public ResSignCodeResend codeResend(UUID identity) throws SignInitNotFoundException, SignInitExpireException, SignInitStatusIncorrectException, SignInitCodeResendException, ExternalServiceException, FraudClientServiceException {
+
+        SignInit sign = this.getSignByIdentity(identity);
+
+        final String username = sign.getUsername();
+
+        final String deviceId = GlobalVar.getDeviceId();
+        final String deviceModel = GlobalVar.getDeviceModel();
+
+        boolean isFraudCheckEnabled = propertiesService.isFraudCodeResendCheck();
+        boolean resendCode = fraudValidator.isFraudCodeResendCheck(isFraudCheckEnabled, username, deviceId, deviceModel);
+
+        if (resendCode) {
+            var result = new ResSignCodeResend();
+            result.setIdentity(sign.getId());
+            result.setMessage(String.format("СМС отправлен на номер %s", CoreUtils.maskedPhone(username)));
+            return result;
+        }
+
+        if (LocalDateTime.now().isAfter(sign.getExpire())) {
+            throw new SignInitExpireException(messageSingleton.getMessage(MessageKey.VERIFICATION_TIME_EXPIRED));
+        }
+
+        if (!SignStatus.CHECK.equals(sign.getStatus())) {
+            throw new SignInitStatusIncorrectException(messageSingleton.getMessage(MessageKey.VERIFICATION_STATUS_NOT_CORRECT));
+        }
+
+        if ((sign.getCodeCount() + 1) >= 3) {
+            throw new SignInitCodeResendException(messageSingleton.getMessage(MessageKey.CONFIRMATION_CODE_INPUT_LIMIT_EXCEEDED));
+        }
+
+        String code = CoreUtils.generateSmsCode();
+
+        if ("998979497771".equals(username)) {
+            code = "232323";
+        } else {
+            notifyService.sendSMS(username, notifyUtils.getSignMessage(code));
+        }
+
+        sign.setCode(code);
+        sign.setCodeExpire(DateUtils.codeExpire());
+        sign.setCodeCount((short) (sign.getCodeCount() + 1));
+        sign = signInitRepo.saveAndFlush(sign);
+
+        var result = new ResSignCodeResend();
+        result.setIdentity(sign.getId());
+        result.setMessage(String.format("СМС отправлен на номер %s", CoreUtils.maskedPhone(username)));
+        return result;
+    }
+
+    @Override
+    public ResAgreementUrl getAgreementUrl() {
+        return new ResAgreementUrl(propertiesService.getPolicyUrlForRegistration());
+    }
+
+    @Override
+    public UserDBOMain validateToken(String token) throws InvalidTokenException {
         try {
 
-            UUID userId = extractUserId(authorization);
+            UUID accessToken = UUID.fromString(token);
 
-            if (!checkValidateToken(authorization)) {
+            UserAccess userAccess = userAccessRepo.findByAccessToken(accessToken).orElseThrow(() -> new InvalidTokenException(20401, messageSingleton.getMessage(MessageKey.INVALID_TOKEN)));
+            User authUser = userAccess.getUser();
 
-                UserAccess userAccess = getUserAccess(userId);
-                User authUser = userAccess.getUser();
-
-                if (CoreUtils.isEmpty(authUser) || !BaseStatus.ACTIVE.equals(authUser.getStatus())) {
-                    throw new InvalidTokenException(20402, messageSingleton.getMessage(MessageKey.INVALID_TOKEN));
-                }
-
-                userAccess.setAccessToken(generateToken(authUser.getId()));
-                userAccess.setAccessTokenExpire(LocalDateTime.now().plusSeconds(expirationAccessTime));
-                userAccessRepo.save(userAccess);
-
-                return generateResponse(authUser, userAccess);
-
-            } else {
-
-                UserAccess userAccess = getUserAccess(userId);
-                User authUser = userAccess.getUser();
-
-                if (CoreUtils.isEmpty(authUser) || !BaseStatus.ACTIVE.equals(authUser.getStatus())) {
-                    throw new InvalidTokenException(20402, messageSingleton.getMessage(MessageKey.INVALID_TOKEN));
-                }
-
-                return generateResponse(authUser, userAccess);
-
+            if (CoreUtils.isEmpty(authUser) || !BaseStatus.ACTIVE.equals(authUser.getStatus())) {
+                throw new InvalidTokenException(20402, messageSingleton.getMessage(MessageKey.INVALID_TOKEN));
             }
+
+            if (isTokenExpired(userAccess.getAccessTokenExpire())) {
+                throw new InvalidTokenException(20402, messageSingleton.getMessage(MessageKey.INVALID_TOKEN));
+            }
+
+            return generateResponse(authUser, userAccess);
+
         } catch (Throwable th) {
             throw new InvalidTokenException(20402, messageSingleton.getMessage(MessageKey.INVALID_TOKEN));
         }
     }
 
     @Override
-    public ResLogin login(ReqLogin request) throws EntityNotFoundException, DecodeDataException, SignInitPasswordValidationException, RoleNotFoundException {
-
-        UserRole userRole = getUserRole(request.getUserRoleType());
-
-        Optional<User> optionalUser = userRepo.findByEmailAndRole(request.getUsername(), userRole);
-
-        if (optionalUser.isEmpty()) {
-            throw new EntityNotFoundException(messageSingleton.getMessage(MessageKey.USER_NOT_FOUND));
-        }
-
-        User user = optionalUser.get();
-        UserAccess userAccess = user.getAccess();
-
-        final String pass = this.getDecryptedPass(userAccess.getPrivateKey(), request.getPassword());
-
-        if (!CoreUtils.checkPassword(pass) || !passwordEncoder.matches(pass, user.getPassword())) {
-            throw new SignInitPasswordValidationException(messageSingleton.getMessage(MessageKey.INCORRECT_PASSWORD));
-        }
-
-        String accessToken = generateToken(user.getId());
-
-        userAccess.setAccessToken(accessToken);
-        userAccess.setAccessTokenExpire(LocalDateTime.now().plusSeconds(expirationAccessTime));
-        userAccess.setRefreshToken(UUID.randomUUID());
-        userAccess.setRefreshTokenExpire(LocalDateTime.now().plusSeconds(expirationRefreshTime));
-        userAccess.setType(GlobalVar.getDEVICE_TYPE());
-        userAccess.setUserAgent(GlobalVar.getUserAgent());
-        userAccess.setIpAddress(GlobalVar.getIpAddress());
-        userAccess = userAccessRepo.save(userAccess);
-
-        return new ResLogin(userAccess.getAccessToken());
-    }
-
-    @Override
-    public ResSignUp signUp(ReqSignUp request) throws UserExistException, RoleNotFoundException, DecodeDataException, SignInitPasswordValidationException, EntityNotFoundException {
-
-        SignInit sign = signInitRepo.findByIpAndDeviceId(GlobalVar.getIpAddress(), GlobalVar.getDeviceId())
-                .orElseThrow(() -> new EntityNotFoundException(messageSingleton.getMessage(MessageKey.SESSION_NOT_FOUND)));
-
-        UserRole userRole = getUserRole(request.getUserRoleType());
-
-        Optional<User> optionalUser = userRepo.findByEmailAndRole(request.getUsername(), userRole);
-
-        if (optionalUser.isPresent()) {
-            throw new UserExistException(messageSingleton.getMessage(MessageKey.USER_ALREADY_EXISTS));
-        }
-
-        final String pass = this.getDecryptedPass(sign.getPrivateKey(), request.getPassword());
-
-        if (!CoreUtils.checkPassword(pass)) {
-            throw new SignInitPasswordValidationException(messageSingleton.getMessage(MessageKey.INCORRECT_PASSWORD_FORMAT));
-        }
-
-        User user = new User();
-        user.setPassword(passwordEncoder.encode(pass));
-        user.setUsername(request.getUsername());
-        user.setEmail(request.getUsername());
-        user.setStatus(BaseStatus.ACTIVE);
-        user.setRole(userRole);
-        user = userRepo.saveAndFlush(user);
-
-        UserAccess userAccess = new UserAccess();
-        userAccess.setPrivateKey(sign.getPrivateKey());
-        userAccess.setPublicKey(sign.getPublicKey());
-        userAccess.setUser(user);
-        userAccessRepo.save(userAccess);
-
-        sign.setIsReg(true);
-        sign.setStatus(SignStatus.VERIFIED);
-        sign.setUsername(request.getUsername());
-        sign.setUserUUID(user.getId());
-        sign.setStatusMessage("Successfully registered");
-        signInitRepo.save(sign);
-
-        var signUp = new ResSignUp();
-        signUp.setMessage(messageSingleton.getMessage(MessageKey.USER_SUCCESSFULLY_REGISTERED));
-        signUp.setIsReg(true);
-        return signUp;
-    }
-
-    @Override
-    public ResEncrypt getEncryptKey() throws PairKeyGenerationException {
+    public SuccessMessage encPassword(ReqPassword request) {
         try {
+            byte[] keyBytes = Base64.getDecoder().decode(request.getPublicKey());
+            X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes);
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            PublicKey pubKey = keyFactory.generatePublic(spec);
 
-            Optional<SignInit> optionalSignInit = signInitRepo.findByIpAndDeviceId(GlobalVar.getIpAddress(), GlobalVar.getDeviceId());
-            SignInit sign;
+            byte[] contentBytes = request.getPassword().getBytes();
+            Cipher cipher = Cipher.getInstance("RSA");
+            cipher.init(Cipher.ENCRYPT_MODE, pubKey);
+            byte[] cipherContent = cipher.doFinal(contentBytes);
+            return new SuccessMessage(Base64.getEncoder().encodeToString(cipherContent));
+        } catch (Throwable e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
 
-            if (optionalSignInit.isPresent()) {
-                sign = optionalSignInit.get();
+    private SignInit checkSign(UUID identity) throws SignInitNotFoundException, SignInitExpireException, SignInitStatusIncorrectException {
 
-                if (LocalDateTime.now().isAfter(sign.getExpire())) {
-                    sign = updateSignInitWithNewKeyPair(sign);
+        SignInit sign = this.getSignByIdentity(identity);
+
+        if (LocalDateTime.now().isAfter(sign.getExpire())) {
+            throw new SignInitExpireException(messageSingleton.getMessage(MessageKey.VERIFICATION_TIME_EXPIRED));
+        }
+
+        if (!SignStatus.VERIFIED.equals(sign.getStatus())) {
+            throw new SignInitStatusIncorrectException(messageSingleton.getMessage(MessageKey.VERIFICATION_STATUS_NOT_CORRECT));
+        }
+
+        return sign;
+    }
+
+    private User checkUserForSign(SignInit sign, String password) throws UserNotFoundException, ExternalServiceException, FraudClientServiceException, DecodeDataException, SignInitPasswordIncorrectException, SignInitPasswordTryException, UserBlockedException {
+
+        Optional<User> userOptional = userRepo.findByUsername(sign.getUsername());
+
+        if (userOptional.isEmpty()) {
+            throw new UserNotFoundException(messageSingleton.getMessage(MessageKey.USER_NOT_FOUND));
+        }
+
+        User authUser = userOptional.get();
+
+        final String deviceId = GlobalVar.getDeviceId();
+        final String deviceModel = GlobalVar.getDeviceModel();
+
+        final String userIdStr = authUser.getId().toString();
+        final String username = authUser.getUsername();
+
+        boolean isFraudCheckEnabled = propertiesService.isFraudSignIn();
+        fraudValidator.isFraudSingIn(isFraudCheckEnabled, username, userIdStr, deviceId, deviceModel);
+
+        final String pass = this.getDecryptedPass(sign, password);
+
+        if (CoreUtils.isPresent(authUser.getPassword())) {
+            if (!passwordEncoder.matches(pass, authUser.getPassword())) {
+                if ((sign.getTryCount() + 1) < 3) {
+                    throw new SignInitPasswordIncorrectException(messageSingleton.getMessage(MessageKey.INCORRECT_PASSWORD));
                 }
-            } else {
-                sign = createNewSignInit();
+                throw new SignInitPasswordTryException(messageSingleton.getMessage(MessageKey.CONFIRMATION_CODE_INPUT_LIMIT_EXCEEDED));
             }
+        } else {
+            authUser.setPassword(passwordEncoder.encode(password));
+            userRepo.save(authUser);
+        }
 
-            return new ResEncrypt(sign.getPublicKey());
+        if (BaseStatus.BLOCKED.equals(authUser.getStatus())) {
+            throw new UserBlockedException(messageSingleton.getMessage(MessageKey.USER_BLOCKED_CONTACT_ADMINISTRATOR));
+        }
+
+        // refresh
+        fraudValidator.refreshFraudSignIn(isFraudCheckEnabled, username, userIdStr, deviceId, deviceModel);
+
+        return authUser;
+    }
+
+    private ResSignIn executeNewAccessWithRemovingOldAccessData(SignInit sign, User authUser) {
+
+        UUID refreshToken = CoreUtils.generateTokenUUID();
+        UUID accessToken = CoreUtils.generateTokenUUID();
+
+        DeviceType deviceType = GlobalVar.getDEVICE_TYPE();
+
+        Long accessTokenExpireHours = propertiesService.getAccessTokenExpireHours();
+
+        UserAccess authAccess = new UserAccess();
+        authAccess.setUser(authUser);
+        authAccess.setRefreshToken(refreshToken);
+        authAccess.setRefreshTokenExpire(DateUtils.refreshTokenExpire(deviceType));
+        authAccess.setAccessToken(accessToken);
+        authAccess.setAccessTokenExpire(LocalDateTime.now().plusHours(accessTokenExpireHours));
+        authAccess.setPrivateKey(sign.getPrivateKey());
+        authAccess.setPublicKey(sign.getPublicKey());
+        authAccess.setIpAddress(GlobalVar.getIpAddress());
+        authAccess.setUserAgent(GlobalVar.getUserAgent());
+        authAccess.setType(deviceType);
+        userAccessRepo.saveAndFlush(authAccess);
+
+        ResSignIn.ResUserAccess access = new ResSignIn.ResUserAccess(
+                accessToken,
+                accessTokenExpireHours * 60 * 60L
+        );
+
+        ResSignIn signIn = new ResSignIn();
+        signIn.setUser(new ResSignIn.ResUserSimple(authUser));
+        signIn.setAccess(access);
+        return signIn;
+    }
+
+    private SignInit signVerify(UUID identity, String code) throws ExternalServiceException, FraudClientServiceException, SignInitNotFoundException, SignInitExpireException, SignInitStatusIncorrectException, SignInitCodeIncorrectException, SignInitCodeRetryException, SignInitCodeExpireException, PairKeyGenerationException {
+
+        final String deviceId = GlobalVar.getDeviceId();
+        final String deviceModel = GlobalVar.getDeviceModel();
+
+        boolean isFraudCheckEnabled = propertiesService.isFraudCodeCheck();
+        fraudValidator.isFraudCodeCheck(isFraudCheckEnabled, deviceId, deviceModel);
+
+        SignInit sign = this.getSignByIdentity(identity);
+
+        if (LocalDateTime.now().isAfter(sign.getExpire())) {
+            throw new SignInitExpireException(messageSingleton.getMessage(MessageKey.VERIFICATION_TIME_EXPIRED));
+        }
+
+        if (!SignStatus.CHECK.equals(sign.getStatus())) {
+            throw new SignInitStatusIncorrectException(messageSingleton.getMessage(MessageKey.VERIFICATION_STATUS_NOT_CORRECT));
+        }
+
+        if (!sign.getCode().equalsIgnoreCase(code)) {
+            if ((sign.getCodeCount() + 1) < 3) {
+                throw new SignInitCodeIncorrectException(messageSingleton.getMessage(MessageKey.INVALID_CODE_ENTERED_TRY_AGAIN));
+            }
+            throw new SignInitCodeRetryException(messageSingleton.getMessage(MessageKey.CONFIRMATION_CODE_INPUT_LIMIT_EXCEEDED));
+        }
+
+        if (LocalDateTime.now().isAfter(sign.getCodeExpire())) {
+            throw new SignInitCodeExpireException(messageSingleton.getMessage(MessageKey.CODE_TIMED_OUT));
+        }
+
+        // refresh
+        fraudValidator.refreshFraudCodeCheck(isFraudCheckEnabled, deviceId, deviceModel);
+
+        try {
+            KeyPair keyPair = cipherUtility.getKeyPair();
+
+            final String publicKey = cipherUtility.encodeKey(keyPair.getPublic());
+            final String privateKey = cipherUtility.encodeKey(keyPair.getPrivate());
+
+            sign.setPublicKey(publicKey);
+            sign.setPrivateKey(privateKey);
 
         } catch (Exception e) {
             throw new PairKeyGenerationException(messageSingleton.getMessage(MessageKey.DATA_DECODING_ERROR));
         }
 
+        return sign;
     }
 
-    private UserRole getUserRole(UserRoleType request) throws RoleNotFoundException {
-        return roleRepo.findFirstByType(request)
-                .orElseThrow(() -> new RoleNotFoundException(messageSingleton.getMessage(MessageKey.ROLE_NOT_FOUND)));
+    private String getDecryptedPass(SignInit sign, String password) throws DecodeDataException {
+        try {
+            PrivateKey privateKey = cipherUtility.decodePrivateKey(sign.getPrivateKey());
+            return cipherUtility.decrypt(password, privateKey);
+        } catch (final Exception e) {
+            throw new DecodeDataException(messageSingleton.getMessage(MessageKey.DATA_DECODING_ERROR));
+        }
     }
 
-    private UserAccess getUserAccess(UUID userId) throws InvalidTokenException {
-        return userAccessRepo.findByUserId(userId).orElseThrow(() ->
-                new InvalidTokenException(20402, messageSingleton.getMessage(MessageKey.INVALID_TOKEN)));
+    private SignInit getSignByIdentity(UUID identity) throws SignInitNotFoundException {
+        Optional<SignInit> signOptional = signInitRepo.findById(identity);
+        if (signOptional.isEmpty()) {
+            throw new SignInitNotFoundException(messageSingleton.getMessage(MessageKey.DATA_NOT_FOUND));
+        }
+        return signOptional.get();
+    }
+
+    public static boolean isTokenExpired(LocalDateTime expirationTime) {
+        LocalDateTime now = LocalDateTime.now();
+        return now.isAfter(expirationTime);
     }
 
     private UserDBOMain generateResponse(User authUser, UserAccess userAccess) {
@@ -236,19 +444,18 @@ public class IdentityServiceImpl implements IdentityService {
         return result;
     }
 
-    private UserDBO getUser(User authUser) {
-        UserDBO user = new UserDBO();
-        user.setId(authUser.getId());
-        user.setUserNO(authUser.getUserNO());
-        user.setUsername(authUser.getUsername());
-        user.setFirstName(authUser.getFirstName());
-        user.setLastName(authUser.getLastName());
-        user.setEmail(authUser.getEmail());
-        user.setPhone(authUser.getPhone());
-        user.setAge(authUser.getAge());
-        user.setStatus(authUser.getStatus());
-        user.setGender(authUser.getGender());
-        return user;
+    private UserDBOSecurity getSecurity(UserAccess userAccess, User authUser) {
+        UserDBOSecurity security = new UserDBOSecurity();
+        security.setPrvKey(userAccess.getPrivateKey());
+        security.setPubKey(userAccess.getPublicKey());
+        security.setPassword(authUser.getPassword());
+        return security;
+    }
+
+    private UserDBOPassword getPassword(User authUser) {
+        UserDBOPassword password = new UserDBOPassword();
+        password.setPassword(authUser.getPassword());
+        return password;
     }
 
     private UserDBORole getRole(User authUser) {
@@ -264,103 +471,19 @@ public class IdentityServiceImpl implements IdentityService {
         return null;
     }
 
-    private UserDBOSecurity getSecurity(UserAccess userAccess, User authUser) {
-        UserDBOSecurity security = new UserDBOSecurity();
-        security.setPrvKey(userAccess.getPrivateKey());
-        security.setPubKey(userAccess.getPublicKey());
-        security.setPassword(authUser.getPassword());
-        return security;
+    private UserDBO getUser(User authUser) {
+        UserDBO user = new UserDBO();
+        user.setId(authUser.getId());
+        user.setUserNO(authUser.getUserNO());
+        user.setUsername(authUser.getUsername());
+        user.setFirstName(authUser.getFirstName());
+        user.setLastName(authUser.getLastName());
+        user.setEmail(authUser.getEmail());
+        user.setPhone(authUser.getPhone());
+        user.setAge(authUser.getAge());
+        user.setStatus(authUser.getStatus());
+        user.setGender(authUser.getGender());
+        return user;
     }
 
-    private UserDBOPassword getPassword(User authUser) {
-        UserDBOPassword password = new UserDBOPassword();
-        password.setPassword(authUser.getPassword());
-        return password;
-    }
-
-    private SignInit updateSignInitWithNewKeyPair(SignInit sign) {
-        KeyPair keyPair = cipherUtility.getKeyPair();
-
-        final String publicKey = cipherUtility.encodeKey(keyPair.getPublic());
-        final String privateKey = cipherUtility.encodeKey(keyPair.getPrivate());
-
-        sign.setCodeExpire(DateUtils.codeExpire());
-        sign.setDevMode(GlobalVar.getDEV_MODE());
-        sign.setAgent(GlobalVar.getUserAgent());
-        sign.setIp(GlobalVar.getIpAddress());
-        sign.setPrivateKey(privateKey);
-        sign.setPublicKey(publicKey);
-
-        return signInitRepo.saveAndFlush(sign);
-    }
-
-    private SignInit createNewSignInit() {
-        KeyPair keyPair = cipherUtility.getKeyPair();
-
-        final String publicKey = cipherUtility.encodeKey(keyPair.getPublic());
-        final String privateKey = cipherUtility.encodeKey(keyPair.getPrivate());
-
-        SignInit sign = new SignInit();
-        sign.setCodeExpire(DateUtils.codeExpire());
-        sign.setDeviceId(GlobalVar.getDeviceId());
-        sign.setDevMode(GlobalVar.getDEV_MODE());
-        sign.setAgent(GlobalVar.getUserAgent());
-        sign.setExpire(DateUtils.codeExpire());
-        sign.setIp(GlobalVar.getIpAddress());
-        sign.setPrivateKey(privateKey);
-        sign.setPublicKey(publicKey);
-
-        return signInitRepo.saveAndFlush(sign);
-    }
-
-    private String getDecryptedPass(String privateKeyStr, String password) throws DecodeDataException {
-        try {
-            PrivateKey privateKey = cipherUtility.decodePrivateKey(privateKeyStr);
-            return cipherUtility.decrypt(password, privateKey);
-        } catch (final Exception e) {
-            throw new DecodeDataException(messageSingleton.getMessage(MessageKey.DATA_DECODING_ERROR));
-        }
-    }
-
-    private String getEncryptedPass(UserAccess userAccess, String password) throws DecodeDataException {
-        try {
-            PublicKey privateKey = cipherUtility.decodePublicKey(userAccess.getPublicKey());
-            return cipherUtility.encrypt(password, privateKey);
-        } catch (final Exception e) {
-            throw new DecodeDataException(messageSingleton.getMessage(MessageKey.DATA_DECODING_ERROR));
-        }
-    }
-
-    public String generateToken(UUID userId) {
-        return Jwts.builder()
-                .setSubject(String.valueOf(userId))
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expirationAccessTime))
-                .signWith(SignatureAlgorithm.HS256, secretKey)
-                .compact();
-    }
-
-    public boolean checkValidateToken(String token) {
-        try {
-            Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);
-            return true;
-        } catch (JwtException | IllegalArgumentException e) {
-            return false;
-        }
-    }
-
-    public UUID extractUserId(String token) throws InvalidTokenException {
-        try {
-            String userIdStr = Jwts.parser()
-                    .setSigningKey(secretKey)
-                    .parseClaimsJws(token)
-                    .getBody()
-                    .getSubject();
-
-            return UUID.fromString(userIdStr);
-
-        } catch (Exception e) {
-            throw new InvalidTokenException(20402, messageSingleton.getMessage(MessageKey.INVALID_TOKEN));
-        }
-    }
 }

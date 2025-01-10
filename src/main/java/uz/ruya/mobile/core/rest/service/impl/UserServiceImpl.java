@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uz.ruya.mobile.core.rest.entity.user.UserProfile;
 import uz.ruya.mobile.core.rest.enums.BaseStatus;
-import uz.ruya.mobile.core.rest.repo.UserProfileRepo;
+import uz.ruya.mobile.core.rest.repo.user.UserProfileRepo;
 import uz.ruya.mobile.core.rest.service.UserService;
 
 import java.util.Optional;

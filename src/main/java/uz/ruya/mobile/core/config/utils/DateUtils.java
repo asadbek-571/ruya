@@ -1,6 +1,7 @@
 package uz.ruya.mobile.core.config.utils;
 
 import org.springframework.util.StringUtils;
+import uz.ruya.mobile.core.config.core.DeviceType;
 import uz.ruya.mobile.core.config.core.Lang;
 import uz.ruya.mobile.core.config.excaption.BadRequestException;
 
@@ -22,6 +23,27 @@ public class DateUtils {
     public static DateTimeFormatter fLocalTime = DateTimeFormatter.ofPattern("HH:mm:ss");
     public static DateTimeFormatter fLocalDateTimeWithT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
     public static DateTimeFormatter fLocalDateTimeWithT2 = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS");
+    public static DateTimeFormatter fMonthDate = DateTimeFormatter.ofPattern("MMM, dd, yyyy");
+
+    public static LocalDateTime identityTokenExpire() {
+        return LocalDateTime.now().plusMinutes(10L);
+    }
+
+    public static LocalDateTime refreshTokenExpire(DeviceType deviceType) {
+        if (DeviceType.WEB.equals(deviceType)) {
+            return refreshTokenExpireWeb();
+        } else {
+            return refreshTokenExpire();
+        }
+    }
+
+    public static LocalDateTime refreshTokenExpire() {
+        return LocalDateTime.now().plusYears(1L);
+    }
+
+    public static LocalDateTime refreshTokenExpireWeb() {
+        return LocalDateTime.now().plusDays(1L);
+    }
 
     public static LocalDateTime emailCodeExpire() {
         return LocalDateTime.now().plusMinutes(5L);
@@ -280,6 +302,10 @@ public class DateUtils {
         }
     }
 
+    public static String monthFormat(LocalDateTime dateTime) {
+        return dateTime.format(fMonthDate);
+    }
+
     public static String getDifferanceHoursForApplication(String dateTime, int addedHour, Lang lang) {
         try {
             LocalDateTime waitingTime = DateUtils.stringToLocalDateTime(dateTime, fLocalDateTimeWithT2).plusHours(addedHour);
@@ -292,12 +318,9 @@ public class DateUtils {
                     return hours + "s " + duration.minusHours(hours).toMinutes() + " daqiqa";
                 case RUS:
                     return hours + "ч " + duration.minusHours(hours).toMinutes() + " мин";
-                case KRL:
-                    return hours + "с " + duration.minusHours(hours).toMinutes() + " дақиқа";
                 case ENG:
                     return hours + "h " + duration.minusHours(hours).toMinutes() + " min";
-                case KAA:
-                    return hours + "s " + duration.minusHours(hours).toMinutes() + " min";
+
             }
 
 

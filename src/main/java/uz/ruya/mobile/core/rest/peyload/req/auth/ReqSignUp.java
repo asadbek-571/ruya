@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import uz.ruya.mobile.core.rest.enums.UserRoleType;
 
 import java.io.Serializable;
 
@@ -22,7 +21,5 @@ public class ReqSignUp implements Serializable {
     private String username;
     @Schema(description = "encrypt password", example = "HJjkasndujsekrn...")
     private String password;
-    @Schema(description = "COMPANY or CANDIDATE", example = "CANDIDATE")
-    private UserRoleType userRoleType;
 
 }

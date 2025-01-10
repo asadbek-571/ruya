@@ -2,9 +2,11 @@ package uz.ruya.mobile.core.rest.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import uz.ruya.mobile.core.config.core.DeviceType;
+import uz.ruya.mobile.core.config.core.GlobalVar;
 import uz.ruya.mobile.core.config.utils.CoreUtils;
 import uz.ruya.mobile.core.rest.entity.properties.PropertiesEntity;
-import uz.ruya.mobile.core.rest.repo.PropertiesRepository;
+import uz.ruya.mobile.core.rest.repo.properties.PropertiesRepository;
 import uz.ruya.mobile.core.rest.service.PropertiesService;
 
 import java.util.Optional;
@@ -87,5 +89,43 @@ public class PropertiesServiceImpl implements PropertiesService {
     @Override
     public String getMinIosVersion() {
         return getStringProperty("min_version_ios", "");
+    }
+
+    @Override
+    public Boolean isFraudPhoneCheck() {
+        return getBooleanProperty("is_fraud_phone_check", false);
+    }
+
+    @Override
+    public Boolean isFraudCodeCheck() {
+        return getBooleanProperty("is_fraud_code_check", false);
+    }
+
+    @Override
+    public Boolean isFraudSignIn() {
+        return getBooleanProperty("is_fraud_sign_in", false);
+    }
+
+    @Override
+    public Long getAccessTokenExpireHours() {
+        if (DeviceType.ANDROID.equals(GlobalVar.getDEVICE_TYPE())) {
+            return getLongProperty("access_token_android_expire_hours", 2L);
+        } else if (DeviceType.IOS.equals(GlobalVar.getDEVICE_TYPE())) {
+            return getLongProperty("access_token_ios_expire_hours", 2L);
+        } else if (DeviceType.WEB.equals(GlobalVar.getDEVICE_TYPE())) {
+            return getLongProperty("access_token_web_expire_hours", 2L);
+        }
+        return 2L;
+    }
+
+    @Override
+    public Boolean isFraudCodeResendCheck() {
+        return getBooleanProperty("is_fraud_code_resend_check", false);
+    }
+
+
+    @Override
+    public String getPolicyUrlForRegistration() {
+        return getStringProperty("policy_url_for_registration", "https://file.ruya.uz/policy.html");
     }
 }

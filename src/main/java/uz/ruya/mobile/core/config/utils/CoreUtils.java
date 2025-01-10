@@ -1,7 +1,5 @@
 package uz.ruya.mobile.core.config.utils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -9,11 +7,8 @@ import uz.ruya.mobile.core.config.core.Lang;
 
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Component
 public class CoreUtils {
@@ -224,12 +219,12 @@ public class CoreUtils {
             return "Пожалуйста, обновите приложение до последней версии";
         } else if (Lang.ENG.equals(lang)) {
             return "Please, update app with latest version";
-        } else if (Lang.KAA.equals(lang)) {
-            return "Ótinish, xazna programmasın aqırǵı versiyasın júklevoring";
-        } else if (Lang.KRL.equals(lang)) {
-            return "Илтимос, иловани охирги версиясини юклаб олинг";
         }
         return "Iltimos, ilovani oxirgi versiyasini yuklab oling";
+    }
+
+    public static String extractVersion(String appVersion) {
+        return appVersion.split("[(\\-]")[0].trim();
     }
 
 }

@@ -1,21 +1,81 @@
 package uz.ruya.mobile.core.rest.service;
 
 import uz.ruya.mobile.core.auth.UserDBOMain;
+import uz.ruya.mobile.core.config.core.SuccessMessage;
 import uz.ruya.mobile.core.config.excaption.*;
-import uz.ruya.mobile.core.rest.peyload.req.auth.ReqLogin;
-import uz.ruya.mobile.core.rest.peyload.req.auth.ReqSignUp;
-import uz.ruya.mobile.core.rest.peyload.res.auth.ResEncrypt;
-import uz.ruya.mobile.core.rest.peyload.res.auth.ResLogin;
-import uz.ruya.mobile.core.rest.peyload.res.auth.ResSignUp;
+import uz.ruya.mobile.core.rest.peyload.req.auth.ReqPassword;
+import uz.ruya.mobile.core.rest.peyload.res.auth.*;
 
 import javax.management.relation.RoleNotFoundException;
+import java.util.UUID;
 
 public interface IdentityService {
-    UserDBOMain validateToken(String authorization) throws InvalidTokenException;
 
-    ResLogin login(ReqLogin request) throws EntityNotFoundException, DecodeDataException, SignInitPasswordValidationException, RoleNotFoundException;
+    ResSignUserCheck signUserCheck(
+            String username
+    ) throws
+            ExternalServiceException,
+            FraudClientServiceException;
 
-    ResSignUp signUp(ReqSignUp request) throws UserExistException, RoleNotFoundException, DecodeDataException, SignInitPasswordValidationException, EntityNotFoundException;
+    ResSignUserVerify signUserVerify(
+            UUID identity,
+            String code
+    ) throws
+            SignInitNotFoundException,
+            SignInitCodeIncorrectException,
+            SignInitCodeExpireException,
+            SignInitExpireException,
+            SignInitStatusIncorrectException,
+            PairKeyGenerationException,
+            SignInitCodeRetryException,
+            ExternalServiceException,
+            FraudClientServiceException, EntityNotFoundException;
 
-    ResEncrypt getEncryptKey() throws PairKeyGenerationException;
+    ResSignIn signIn(
+            UUID identity,
+            String password
+    ) throws
+            SignInitNotFoundException,
+            SignInitExpireException,
+            SignInitStatusIncorrectException,
+            DecodeDataException,
+            UserNotFoundException,
+            UserBlockedException,
+            SignInitPasswordIncorrectException,
+            SignInitPasswordTryException,
+            ExternalServiceException,
+            FraudClientServiceException;
+
+
+    ResSignUp signUp(
+            UUID identity,
+            String phone,
+            String password
+    ) throws
+            SignInitNotFoundException,
+            SignInitExpireException,
+            SignInitStatusIncorrectException,
+            DecodeDataException,
+            UserExistException,
+            RoleNotFoundException,
+            SignInitPasswordValidationException;
+
+    ResSignCodeResend codeResend(
+            UUID identity
+    ) throws
+            SignInitNotFoundException,
+            SignInitExpireException,
+            SignInitStatusIncorrectException,
+            SignInitCodeResendException,
+            ExternalServiceException,
+            FraudClientServiceException;
+
+    ResAgreementUrl getAgreementUrl();
+
+    UserDBOMain validateToken(
+            String token
+    ) throws
+            InvalidTokenException;
+
+    SuccessMessage encPassword(ReqPassword request);
 }

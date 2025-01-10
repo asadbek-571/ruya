@@ -5,7 +5,11 @@ import lombok.Getter;
 @Getter
 public class UserBlockedException extends Exception {
 
-    private final Integer code;
+    private Integer code;
+
+    public UserBlockedException(String message) {
+        super(message);
+    }
 
     public UserBlockedException(Integer code, String message) {
         super(message);

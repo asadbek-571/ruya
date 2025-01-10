@@ -9,11 +9,8 @@ import uz.ruya.mobile.core.config.logger.Logger;
 import uz.ruya.mobile.core.message.MessageKey;
 import uz.ruya.mobile.core.message.MessageSingleton;
 import uz.ruya.mobile.core.rest.endpoint.IdentEndpoint;
-import uz.ruya.mobile.core.rest.peyload.req.auth.ReqLogin;
-import uz.ruya.mobile.core.rest.peyload.req.auth.ReqSignUp;
+import uz.ruya.mobile.core.rest.peyload.req.auth.*;
 import uz.ruya.mobile.core.rest.service.IdentityService;
-
-import javax.management.relation.RoleNotFoundException;
 
 /**
  Asadbek Kushakov 12/26/2024 1:18 PM 
@@ -27,12 +24,26 @@ public class IdentController implements IdentEndpoint {
     private final MessageSingleton messageSingleton;
 
     @Override
-    public ResponseEntity<?> login(ReqLogin request) {
+    public ResponseEntity<?> signUserCheck(ReqSignUserCheck request) {
         try {
-            var result = service.login(request);
+            var result = service.signUserCheck(request.getUsername());
             return GenericResponse.success(40000, "Success", result);
-        } catch (EntityNotFoundException | DecodeDataException | SignInitPasswordValidationException |
-                 RoleNotFoundException th) {
+        } catch (ExternalServiceException | FraudClientServiceException th) {
+            return GenericResponse.error(20000, th.getMessage());
+        } catch (Throwable th) {
+            Logger.error(th);
+            return GenericResponse.error(20000, messageSingleton.getMessage(MessageKey.UNKNOWN_ERROR));
+        }
+    }
+
+    public ResponseEntity<?> signUserVerify(ReqSignUserVerify request) {
+        try {
+            var result = service.signUserVerify(request.getIdentity(), request.getCode());
+            return GenericResponse.success(40000, "Success", result);
+        } catch (SignInitNotFoundException | SignInitCodeIncorrectException | SignInitCodeExpireException |
+                 SignInitExpireException | SignInitStatusIncorrectException | PairKeyGenerationException |
+                 SignInitCodeRetryException | ExternalServiceException | FraudClientServiceException |
+                 EntityNotFoundException th) {
             return GenericResponse.error(20000, th.getMessage());
         } catch (Throwable th) {
             Logger.error(th);
@@ -41,12 +52,14 @@ public class IdentController implements IdentEndpoint {
     }
 
     @Override
-    public ResponseEntity<?> signUp(ReqSignUp request) {
+    public ResponseEntity<?> signIn(ReqSignIn request) {
         try {
-            var result = service.signUp(request);
+            var result = service.signIn(request.getIdentity(), request.getPassword());
             return GenericResponse.success(40000, "Success", result);
-        } catch (UserExistException | RoleNotFoundException | DecodeDataException |
-                 SignInitPasswordValidationException | EntityNotFoundException th) {
+        } catch (SignInitNotFoundException | SignInitExpireException | SignInitStatusIncorrectException |
+                 DecodeDataException | UserNotFoundException | UserBlockedException |
+                 SignInitPasswordIncorrectException | SignInitPasswordTryException | ExternalServiceException |
+                 FraudClientServiceException th) {
             return GenericResponse.error(20000, th.getMessage());
         } catch (Throwable th) {
             Logger.error(th);
@@ -55,15 +68,38 @@ public class IdentController implements IdentEndpoint {
     }
 
     @Override
-    public ResponseEntity<?> getEncryptKey() {
+    public ResponseEntity<?> resendCode(ReqSignCodeResend code) {
         try {
-            var result = service.getEncryptKey();
+            var result = service.codeResend(code.getIdentity());
             return GenericResponse.success(40000, "Success", result);
-        } catch (PairKeyGenerationException th) {
-            return GenericResponse.error(20000, th.getMessage());
+        } catch (SignInitNotFoundException | SignInitExpireException | SignInitStatusIncorrectException |
+                 SignInitCodeResendException | ExternalServiceException | FraudClientServiceException e) {
+            return GenericResponse.error(20000, e.getMessage());
         } catch (Throwable th) {
             Logger.error(th);
-            return GenericResponse.error(20000, messageSingleton.getMessage(MessageKey.UNKNOWN_ERROR));
+            return GenericResponse.error(20000, "Неизвестная ошибка");
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> agreementURl() {
+        try {
+            var result = service.getAgreementUrl();
+            return GenericResponse.success(40000, "Success", result);
+        } catch (Throwable th) {
+            Logger.error(th);
+            return GenericResponse.error(20000, "Неизвестная ошибка");
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> encPassword(ReqPassword request) {
+        try {
+            var result = service.encPassword(request);
+            return GenericResponse.success(40000, "Success", result);
+        } catch (Throwable th) {
+            Logger.error(th);
+            return GenericResponse.error(20000, "Неизвестная ошибка");
         }
     }
 }

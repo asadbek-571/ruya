@@ -41,13 +41,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             BaseURI.DOC_OPEN_API,
             BaseURI.DOC_SWAGGER_API,
             BaseURI.DOC_SWAGGER_UI,
-            BaseURI.API1 + BaseURI.TRANSLATE + BaseURI.TEXT,
-            BaseURI.API1 + BaseURI.INFO + BaseURI.EVENTS + BaseURI.GET,
-            BaseURI.API2 + BaseURI.INFO + BaseURI.EVENTS + BaseURI.GET,
-            BaseURI.API1 + BaseURI.DOCUMENT + BaseURI.GET + BaseURI.ONE,
-            BaseURI.API1 + BaseURI.IDENT + BaseURI.LOGIN,
-            BaseURI.API1 + BaseURI.IDENT + BaseURI.SIGNUP,
-            BaseURI.API1 + BaseURI.IDENT + BaseURI.GET + BaseURI.ENCRYPT,
+            "/api/v1/auth/sign/check/user",
+            "/api/v1/auth/sign/user/verify",
+            "/api/v1/auth/sign/in",
+            "/api/v1/auth/sign/code/resend",
+            "/api/v1/auth/sign/agreement",
+            "/api/v1/auth/sign/encrypt/password"
     };
 
     static {
