@@ -13,23 +13,32 @@ import uz.ruya.mobile.core.config.utils.CoreUtils;
 import uz.ruya.mobile.core.message.MessageKey;
 import uz.ruya.mobile.core.message.MessageSingleton;
 import uz.ruya.mobile.core.rest.entity.announcement.Announcement;
-import uz.ruya.mobile.core.rest.entity.announcement.AnnouncementDetails;
+import uz.ruya.mobile.core.rest.entity.announcement.AnnouncementParameter;
 import uz.ruya.mobile.core.rest.entity.announcement.Category;
+import uz.ruya.mobile.core.rest.entity.announcement.CategoryParam;
 import uz.ruya.mobile.core.rest.entity.user.UserProfile;
 import uz.ruya.mobile.core.rest.enums.AnnouncementType;
 import uz.ruya.mobile.core.rest.peyload.base.AddressDto;
-import uz.ruya.mobile.core.rest.peyload.req.ReqAmount;
+import uz.ruya.mobile.core.rest.peyload.req.ReqLongId;
 import uz.ruya.mobile.core.rest.peyload.req.ReqPaging;
 import uz.ruya.mobile.core.rest.peyload.req.announcement.ReqAddAnnouncement;
 import uz.ruya.mobile.core.rest.peyload.req.announcement.ReqAnnouncement;
+import uz.ruya.mobile.core.rest.peyload.req.announcement.ReqCategory;
 import uz.ruya.mobile.core.rest.peyload.res.ResPaging;
 import uz.ruya.mobile.core.rest.peyload.res.ResPagingParams;
 import uz.ruya.mobile.core.rest.peyload.res.announcement.ResAnnouncementOne;
+import uz.ruya.mobile.core.rest.peyload.res.announcement.ResCategoryList;
+import uz.ruya.mobile.core.rest.peyload.res.announcement.ResCategoryParameters;
+import uz.ruya.mobile.core.rest.repo.announcement.AnnouncementParameterRepo;
 import uz.ruya.mobile.core.rest.repo.announcement.AnnouncementRepo;
+import uz.ruya.mobile.core.rest.repo.announcement.CategoryParamRepo;
 import uz.ruya.mobile.core.rest.repo.announcement.CategoryRepo;
 import uz.ruya.mobile.core.rest.service.AnnouncementService;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -40,10 +49,74 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AnnouncementServiceImpl implements AnnouncementService {
 
-    private final AnnouncementRepo announcementRepo;
-    private final CategoryRepo categoryRepo;
-
     private final MessageSingleton messageSingleton;
+
+    private final CategoryRepo categoryRepo;
+    private final CategoryParamRepo categoryParamRepo;
+    private final AnnouncementRepo announcementRepo;
+    private final AnnouncementParameterRepo announcementParameterRepo;
+
+    @Override
+    public ResCategoryList getCategory(ReqCategory request) {
+        List<Category> categories = CoreUtils.isPresent(request.getParentId())
+                ? categoryRepo.findAllByParentId(request.getParentId())
+                : categoryRepo.findAllByParentIdIsNull();
+
+        List<ResCategoryList.ResCategoryOne> list = categories.stream()
+                .map(ResCategoryList.ResCategoryOne::new)
+                .collect(Collectors.toList());
+
+        return new ResCategoryList(list);
+    }
+
+    @Override
+    public ResCategoryParameters getCategoryParam(ReqLongId request) throws EntityNotFoundException {
+
+        List<CategoryParam> params = categoryParamRepo.findAllByCategoryId(request.getId());
+
+        Optional<CategoryParam> optionalMainParam = params.stream().filter(categoryParam -> Boolean.TRUE.equals(categoryParam.getIsMainParent())).findFirst();
+
+        if (optionalMainParam.isEmpty()) {
+            throw new EntityNotFoundException(messageSingleton.getMessage(MessageKey.PARAM_NOT_FOUND));
+        }
+
+        ResCategoryParameters result = new ResCategoryParameters(optionalMainParam.get());
+
+        List<CategoryParam> parenParams = params
+                .stream()
+                .filter(p -> CoreUtils.isEmpty(p.getParentId()) && !p.getIsMainParent())
+                .sorted(Comparator.comparing(CategoryParam::getOrder))
+                .collect(Collectors.toList());
+
+        List<ResCategoryParameters.Param> parameters = new ArrayList<>();
+        for (CategoryParam parent : parenParams) {
+
+            List<CategoryParam> childParams = params
+                    .stream()
+                    .filter(child -> parent.getId().equals(child.getParentId()))
+                    .sorted(Comparator.comparing(CategoryParam::getOrder))
+                    .collect(Collectors.toList());
+
+            ResCategoryParameters.Param param = new ResCategoryParameters.Param(parent);
+
+            List<ResCategoryParameters.ParamValue> values = new ArrayList<>();
+            List<ResCategoryParameters.ParamUnits> units = new ArrayList<>();
+            for (CategoryParam child : childParams) {
+                if (parent.getIsHaveUnist() && child.getIsUnit()) {
+                    units.add(new ResCategoryParameters.ParamUnits(child));
+                } else {
+                    values.add(new ResCategoryParameters.ParamValue(child));
+                }
+            }
+
+            param.setValues(values);
+            param.setUnits(units);
+            parameters.add(param);
+        }
+
+        result.setParameters(parameters);
+        return result;
+    }
 
     @Override
     public SuccessMessage addJobAnnouncement(ReqAddAnnouncement request) throws EntityNotFoundException {
@@ -51,22 +124,14 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         AuthUser authUser = GlobalVar.getAuthUser();
         UserProfile profile = authUser.getProfile();
 
-        Category category = categoryRepo.findById(request.getCategoryId()).orElseThrow(() -> new EntityNotFoundException(messageSingleton.getMessage(MessageKey.CATEGORY_NOT_FOUND)));
-
-        AnnouncementDetails details = new AnnouncementDetails();
-        details.setJobType(request.getJobType());
-        details.setWorkingType(request.getWorkingType());
-
-        if (CoreUtils.isPresent(request.getPrice())) {
-            ReqAmount price = request.getPrice();
-            details.setPrice(price.getAmount());
-            details.setCurrency(price.getCurrency());
-        }
+        Category category = categoryRepo.findById(request.getCategoryId())
+                .orElseThrow(() -> new EntityNotFoundException(messageSingleton.getMessage(MessageKey.CATEGORY_NOT_FOUND)));
 
         Announcement announcement = new Announcement();
+        announcement.setUser(profile);
+        announcement.setCategory(category);
         announcement.setDescription(request.getDescription());
         announcement.setTitle(request.getTitle());
-        announcement.setType(request.getType());
         announcement.setAppliedQty(0);
 
         if (CoreUtils.isPresent(request.getAddress())) {
@@ -76,13 +141,15 @@ public class AnnouncementServiceImpl implements AnnouncementService {
             announcement.setAddressLat(address.getAddressLatitude());
         }
 
-        announcement.setUser(profile);
-        announcement.setCategory(category);
+        announcement = announcementRepo.save(announcement);
+        if (CoreUtils.isPresent(request.getParams())) {
 
-        details.setAnnouncement(announcement);
-        announcement.setDetails(details);
-
-        announcementRepo.save(announcement);
+            List<AnnouncementParameter> parameters = new ArrayList<>();
+            for (ReqAddAnnouncement.ReqAddAnnouncementParam param : request.getParams()) {
+                parameters.add(new AnnouncementParameter(param, announcement));
+            }
+            announcementParameterRepo.saveAll(parameters);
+        }
 
         return new SuccessMessage(messageSingleton.getMessage(MessageKey.SUCCESS));
     }
@@ -111,8 +178,8 @@ public class AnnouncementServiceImpl implements AnnouncementService {
 
         Specification<Announcement> spec = Specification.where(null);
 
-        if (CoreUtils.isPresent(filter.getJobCategoryId())) {
-            spec = spec.and(this.hasJobCategory(filter.getJobCategoryId()));
+        if (CoreUtils.isPresent(filter.getCategoryId())) {
+            spec = spec.and(this.hasJobCategory(filter.getCategoryId()));
         }
         if (CoreUtils.isPresent(filter.getType())) {
             spec = spec.and(this.hasType(filter.getType()));

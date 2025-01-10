@@ -649,7 +649,7 @@ public enum MessageKey {
 
     INCORRECT_PASSWORD_FORMAT("password.format.not.valid", "password.format.not.valid"),
     SESSION_NOT_FOUND("session.not.found", "Session does not exist!"),
-    ;
+    PARAM_NOT_FOUND("param.not.found", "Param not found");
 
     private final String key;
     private final String value;

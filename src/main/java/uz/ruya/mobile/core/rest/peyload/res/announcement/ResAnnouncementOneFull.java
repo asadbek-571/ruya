@@ -8,7 +8,6 @@ import lombok.Setter;
 import uz.ruya.mobile.core.config.utils.CoreUtils;
 import uz.ruya.mobile.core.config.utils.DateUtils;
 import uz.ruya.mobile.core.rest.entity.announcement.Announcement;
-import uz.ruya.mobile.core.rest.entity.announcement.AnnouncementParameter;
 import uz.ruya.mobile.core.rest.peyload.res.ResAmount;
 
 import java.io.Serializable;
@@ -22,7 +21,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ResAnnouncementOne implements Serializable {
+public class ResAnnouncementOneFull implements Serializable {
 
     private Long id;
     private String title;
@@ -32,7 +31,7 @@ public class ResAnnouncementOne implements Serializable {
     private Integer appliedQty;
     private String addressName;
 
-    public ResAnnouncementOne(Announcement ann) {
+    public ResAnnouncementOneFull(Announcement ann) {
         this.id = ann.getId();
         this.title = ann.getTitle();
         this.appliedQty = ann.getAppliedQty();

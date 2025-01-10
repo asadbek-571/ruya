@@ -36,4 +36,26 @@ public class FileUtils {
         return img;
     }
 
+    public static ResImg getCategoryIcon(String name) {
+        ResImg img = new ResImg();
+        img.setContentType("image/png");
+        img.setPath(baseFileURl + "/static/category");
+        img.setName(name);
+        img.setExt("png");
+        img.setSuffix(null);
+        img.setExtraSuffix(List.of());
+        return img;
+    }
+
+    public static ResImg getParamIcon(String name) {
+        ResImg img = new ResImg();
+        img.setContentType("image/png");
+        img.setPath(baseFileURl + "/static/param");
+        img.setName(name);
+        img.setExt("png");
+        img.setSuffix(null);
+        img.setExtraSuffix(List.of());
+        return img;
+    }
+
 }

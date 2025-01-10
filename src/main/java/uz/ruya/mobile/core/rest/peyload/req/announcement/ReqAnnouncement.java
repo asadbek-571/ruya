@@ -30,7 +30,7 @@ public class ReqAnnouncement {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Filter {
 
-        private Long jobCategoryId;
+        private Long categoryId;
         private AnnouncementType type;
 
     }

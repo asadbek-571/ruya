@@ -9,14 +9,16 @@ import uz.ruya.mobile.core.base.BaseScheme;
 import uz.ruya.mobile.core.config.core.Lang;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "category_translate", schema = BaseScheme.CORE)
-public class CategoryTranslate extends BaseEntityLong {
+@Table(name = "category_param", schema = BaseScheme.CORE)
+public class CategoryParamTranslate extends BaseEntityLong {
 
     @Column(name = "name")
     private String name;
@@ -26,7 +28,7 @@ public class CategoryTranslate extends BaseEntityLong {
     private Lang lang;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
-    private Category category;
+    @JoinColumn(name = "category_param_id")
+    private CategoryParam categoryParam;
 
 }

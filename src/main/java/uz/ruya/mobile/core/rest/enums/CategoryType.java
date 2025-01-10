@@ -4,7 +4,6 @@ import lombok.Getter;
 
 @Getter
 public enum CategoryType {
-    CATEGORY,
-    OTHER,
-    JOB,
+    PARENT,
+    CHILD,
 }

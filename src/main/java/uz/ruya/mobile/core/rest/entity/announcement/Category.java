@@ -17,11 +17,14 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "job_category", schema = BaseScheme.INFO)
+@Table(name = "category", schema = BaseScheme.CORE)
 public class Category extends BaseEntityLong {
 
     @Column(name = "name")
     private String name;
+
+    @Column(name = "icon")
+    private String icon;
 
     @Column(name = "parent_id")
     private Long parentId;
@@ -33,10 +36,16 @@ public class Category extends BaseEntityLong {
     @Column(name = "type")
     private CategoryType type;
 
-    @OneToMany(mappedBy = "category")
+    @OneToMany
+    @JoinColumn(name = "category_id")
     private List<CategoryTranslate> translate = new ArrayList<>();
 
-    @OneToMany(mappedBy = "category")
+    @OneToMany
+    @JoinColumn(name = "category_id")
     private List<Announcement> announcements = new ArrayList<>();
+
+    @OneToMany
+    @JoinColumn(name = "category_id")
+    private List<AnnouncementParameter> params = new ArrayList<>();
 
 }

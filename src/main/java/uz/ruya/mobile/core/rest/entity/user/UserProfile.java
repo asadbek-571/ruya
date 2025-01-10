@@ -86,16 +86,21 @@ public class UserProfile extends BaseEntity {
     @Column(name = "blocked_cause")
     private String blockedCause;
 
-    @OneToMany(mappedBy = "user")
+
+    @OneToMany
+    @JoinColumn(name = "user_id")
     private List<UserEducation> educations = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany
+    @JoinColumn(name = "user_id")
     private List<UserExperience> experiences = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany
+    @JoinColumn(name = "user_id")
     private List<Announcement> announcements = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany
+    @JoinColumn(name = "user_id")
     private List<Application> applications = new ArrayList<>();
 
     public Boolean getIsEnableEmail() {
