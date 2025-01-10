@@ -49,5 +49,9 @@ public class ResAnnouncementOne implements Serializable {
             this.icon = FileUtils.getCategoryIcon("default");
         }
 
+        if (CoreUtils.isPresent(ann.getAmount())) {
+            this.amount = new ResAmount(ann.getAmount(), ann.getCurrency());
+        }
+
     }
 }
