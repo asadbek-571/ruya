@@ -26,12 +26,12 @@ public class ResUser implements Serializable {
     private String email;
     private String phone;
     private String birthDate;
-    private Integer ade;
+    private Integer age;
     private Boolean isAlert;
     private String avatarPath;
     private AddressDto address;
     private String registrationDate;
     private Boolean needFCM = Boolean.FALSE;
-    private Boolean openToWork = Boolean.FALSE;
+    private Boolean isPremium = Boolean.FALSE;
 
 }

@@ -14,12 +14,12 @@ import uz.ruya.mobile.core.rest.peyload.req.announcement.ReqAddAnnouncement;
 import uz.ruya.mobile.core.rest.peyload.req.announcement.ReqAnnouncement;
 import uz.ruya.mobile.core.rest.peyload.res.announcement.ResAnnouncementOne;
 
-@DocController(name = "ANNOUNCEMENT Module", description = "Job Service Endpoint")
+@DocController(name = "Announcement Module", description = "Announcement Endpoint")
 @RequestMapping(BaseURI.API1 + BaseURI.ANNOUNCEMENT)
 public interface AnnouncementEndpoint {
 
     @DocMethodAuth(
-            summary = "Add employer ads",
+            summary = "Add Announcement",
             responseCode = "200",
             description = "Operation success",
             content = @Content(schema = @Schema(implementation = SuccessMessage.class))

@@ -24,13 +24,5 @@ public interface UserEndpoint {
     @GetMapping(BaseURI.ME)
     ResponseEntity<?> me();
 
-    @DocMethod(
-            summary = "Get Profile",
-            responseCode = "200",
-            description = "Operation success",
-            content = @Content(schema = @Schema(implementation = ResProfile.class))
-    )
-    @GetMapping(BaseURI.GET + BaseURI.PROFILE)
-    ResponseEntity<?> profile();
 
 }
