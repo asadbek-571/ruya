@@ -7,6 +7,7 @@ import lombok.Setter;
 import uz.ruya.mobile.core.base.BaseEntityLong;
 import uz.ruya.mobile.core.base.BaseScheme;
 import uz.ruya.mobile.core.rest.entity.user.UserProfile;
+import uz.ruya.mobile.core.rest.enums.AnnouncementType;
 import uz.ruya.mobile.core.rest.enums.CurrencyType;
 
 import javax.persistence.*;
@@ -45,6 +46,10 @@ public class Announcement extends BaseEntityLong {
     @Enumerated(EnumType.STRING)
     @Column(name = "currency")
     private CurrencyType currency;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type")
+    private AnnouncementType type;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")

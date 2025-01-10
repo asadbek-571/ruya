@@ -2,6 +2,7 @@ package uz.ruya.mobile.core.rest.peyload.req.announcement;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
+import uz.ruya.mobile.core.rest.enums.AnnouncementType;
 import uz.ruya.mobile.core.rest.peyload.base.AddressDto;
 import uz.ruya.mobile.core.rest.peyload.req.ReqAmount;
 
@@ -26,6 +27,7 @@ public class ReqAddAnnouncement implements Serializable {
     private String description;
     private AddressDto address;
     private ReqAmount price;
+    private AnnouncementType type;
     private List<ReqAddAnnouncementParam> params = new ArrayList<>();
 
     @ToString

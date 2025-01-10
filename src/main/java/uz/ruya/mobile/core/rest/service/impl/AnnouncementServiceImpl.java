@@ -129,10 +129,11 @@ public class AnnouncementServiceImpl implements AnnouncementService {
                 .orElseThrow(() -> new EntityNotFoundException(messageSingleton.getMessage(MessageKey.CATEGORY_NOT_FOUND)));
 
         Announcement announcement = new Announcement();
-        announcement.setUser(profile);
-        announcement.setCategory(category);
         announcement.setDescription(request.getDescription());
         announcement.setTitle(request.getTitle());
+        announcement.setType(request.getType());
+        announcement.setCategory(category);
+        announcement.setUser(profile);
         announcement.setAppliedQty(0);
 
         if (CoreUtils.isPresent(request.getPrice())) {
