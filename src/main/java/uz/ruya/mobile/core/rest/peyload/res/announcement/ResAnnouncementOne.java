@@ -7,8 +7,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import uz.ruya.mobile.core.config.utils.CoreUtils;
 import uz.ruya.mobile.core.config.utils.DateUtils;
+import uz.ruya.mobile.core.config.utils.FileUtils;
 import uz.ruya.mobile.core.rest.entity.announcement.Announcement;
-import uz.ruya.mobile.core.rest.entity.announcement.AnnouncementParameter;
+import uz.ruya.mobile.core.rest.peyload.base.ResImg;
 import uz.ruya.mobile.core.rest.peyload.res.ResAmount;
 
 import java.io.Serializable;
@@ -28,6 +29,7 @@ public class ResAnnouncementOne implements Serializable {
     private String title;
     private String date;
     private ResAmount amount;
+    private ResImg icon;
     private Boolean isApplied = false;
     private Integer appliedQty;
     private String addressName;
@@ -40,6 +42,11 @@ public class ResAnnouncementOne implements Serializable {
 
         if (CoreUtils.isPresent(ann.getAddress())) {
             this.addressName = ann.getAddress();
+        }
+        if (CoreUtils.isPresent(ann.getCategory()) && CoreUtils.isPresent(ann.getCategory().getIcon())) {
+            this.icon = FileUtils.getCategoryIcon(ann.getCategory().getIcon());
+        } else {
+            this.icon = FileUtils.getCategoryIcon("default");
         }
 
     }
