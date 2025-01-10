@@ -3,6 +3,7 @@ package uz.ruya.mobile.core.rest.peyload.req.announcement;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 import uz.ruya.mobile.core.rest.peyload.base.AddressDto;
+import uz.ruya.mobile.core.rest.peyload.req.ReqAmount;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -24,6 +25,7 @@ public class ReqAddAnnouncement implements Serializable {
     private String title;
     private String description;
     private AddressDto address;
+    private ReqAmount price;
     private List<ReqAddAnnouncementParam> params = new ArrayList<>();
 
     @ToString

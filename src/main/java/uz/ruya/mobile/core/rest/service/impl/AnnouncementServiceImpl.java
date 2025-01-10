@@ -19,6 +19,7 @@ import uz.ruya.mobile.core.rest.entity.announcement.CategoryParam;
 import uz.ruya.mobile.core.rest.entity.user.UserProfile;
 import uz.ruya.mobile.core.rest.enums.AnnouncementType;
 import uz.ruya.mobile.core.rest.peyload.base.AddressDto;
+import uz.ruya.mobile.core.rest.peyload.req.ReqAmount;
 import uz.ruya.mobile.core.rest.peyload.req.ReqLongId;
 import uz.ruya.mobile.core.rest.peyload.req.ReqPaging;
 import uz.ruya.mobile.core.rest.peyload.req.announcement.ReqAddAnnouncement;
@@ -133,6 +134,12 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         announcement.setDescription(request.getDescription());
         announcement.setTitle(request.getTitle());
         announcement.setAppliedQty(0);
+
+        if (CoreUtils.isPresent(request.getPrice())) {
+            ReqAmount price = request.getPrice();
+            announcement.setAmount(price.getAmount());
+            announcement.setCurrency(price.getCurrency());
+        }
 
         if (CoreUtils.isPresent(request.getAddress())) {
             AddressDto address = request.getAddress();
