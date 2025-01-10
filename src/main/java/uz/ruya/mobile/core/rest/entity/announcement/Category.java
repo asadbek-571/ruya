@@ -6,11 +6,14 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import uz.ruya.mobile.core.base.BaseEntityLong;
 import uz.ruya.mobile.core.base.BaseScheme;
+import uz.ruya.mobile.core.config.core.GlobalVar;
+import uz.ruya.mobile.core.config.utils.CoreUtils;
 import uz.ruya.mobile.core.rest.enums.CategoryType;
 
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Entity
 @Getter
@@ -32,6 +35,9 @@ public class Category extends BaseEntityLong {
     @Column(name = "qty")
     private Integer qty;
 
+    @Column(name = "max_photos")
+    private Integer maxPhotos;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "type")
     private CategoryType type;
@@ -46,6 +52,19 @@ public class Category extends BaseEntityLong {
 
     @OneToMany
     @JoinColumn(name = "category_id")
-    private List<AnnouncementParameter> params = new ArrayList<>();
+    private List<CategoryParam> params = new ArrayList<>();
+
+    public String getLabelTranslate() {
+        if (CoreUtils.isPresent(this.getTranslate())) {
+
+            Optional<CategoryTranslate> optional = this.getTranslate().stream()
+                    .filter(translate -> GlobalVar.getLANG().equals(translate.getLang())).findFirst();
+
+            if (optional.isPresent()) {
+                return optional.get().getName();
+            }
+        }
+        return this.name;
+    }
 
 }

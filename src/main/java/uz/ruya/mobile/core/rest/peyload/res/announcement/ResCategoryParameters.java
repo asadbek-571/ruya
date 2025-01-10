@@ -2,6 +2,7 @@ package uz.ruya.mobile.core.rest.peyload.res.announcement;
 
 import lombok.*;
 import uz.ruya.mobile.core.config.utils.FileUtils;
+import uz.ruya.mobile.core.rest.entity.announcement.Category;
 import uz.ruya.mobile.core.rest.entity.announcement.CategoryParam;
 import uz.ruya.mobile.core.rest.peyload.base.ResImg;
 
@@ -27,11 +28,11 @@ public class ResCategoryParameters implements Serializable {
     private ResImg icon;
     private List<Param> parameters = new ArrayList<>();
 
-    public ResCategoryParameters(CategoryParam categoryParam) {
+    public ResCategoryParameters(Category category, CategoryParam categoryParam) {
         this.id = categoryParam.getId();
-        this.label = categoryParam.getLabelTranslate();
+        this.label = category.getLabelTranslate();
         this.code = categoryParam.getCode();
-        this.maxPhotos = categoryParam.getMaxPhotos();
+        this.maxPhotos = category.getMaxPhotos();
         this.icon = FileUtils.getParamIcon(categoryParam.getIcon());
     }
 

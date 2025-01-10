@@ -73,7 +73,10 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     @Override
     public ResCategoryParameters getCategoryParam(ReqLongId request) throws EntityNotFoundException {
 
-        List<CategoryParam> params = categoryParamRepo.findAllByCategoryId(request.getId());
+        Category category = categoryRepo.findById(request.getId())
+                .orElseThrow(() -> new EntityNotFoundException(messageSingleton.getMessage(MessageKey.CATEGORY_NOT_FOUND)));
+
+        List<CategoryParam> params = category.getParams();
 
         Optional<CategoryParam> optionalMainParam = params.stream().filter(categoryParam -> Boolean.TRUE.equals(categoryParam.getIsMainParent())).findFirst();
 
@@ -81,7 +84,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
             throw new EntityNotFoundException(messageSingleton.getMessage(MessageKey.PARAM_NOT_FOUND));
         }
 
-        ResCategoryParameters result = new ResCategoryParameters(optionalMainParam.get());
+        ResCategoryParameters result = new ResCategoryParameters(category, optionalMainParam.get());
 
         List<CategoryParam> parenParams = params
                 .stream()

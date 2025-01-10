@@ -37,9 +37,6 @@ public class CategoryParam extends BaseEntityLong {
     @Column(name = "value")
     private String value;
 
-    @Column(name = "max_photos")
-    private Integer maxPhotos;
-
     @Column(name = "order_id")
     private Integer order;
 
