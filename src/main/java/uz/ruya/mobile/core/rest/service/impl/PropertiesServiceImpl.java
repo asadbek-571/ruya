@@ -119,6 +119,18 @@ public class PropertiesServiceImpl implements PropertiesService {
     }
 
     @Override
+    public Long getAccessTokenExpireHours(String username) {
+        if (DeviceType.ANDROID.equals(GlobalVar.getDEVICE_TYPE())) {
+            return 2L;
+        } else if (DeviceType.IOS.equals(GlobalVar.getDEVICE_TYPE())) {
+            return 2L;
+        } else if (DeviceType.WEB.equals(GlobalVar.getDEVICE_TYPE())) {
+            return 2L;
+        }
+        return 2L;
+    }
+
+    @Override
     public Boolean isFraudCodeResendCheck() {
         return getBooleanProperty("is_fraud_code_resend_check", false);
     }

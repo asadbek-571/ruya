@@ -12,7 +12,7 @@ public class NotifyUtils {
 
     public String getChangePasswordMessage(String smsCode) {
         return String.format(
-                "XAZNA sms xizmati. Ushbu kodni hech kimga bermang! Firibgarlardan ehtiyot bo'ling! XAZNA tizimidagi parol o'zgartirilmoqda. Kod: %s. %s",
+                "Ruya sms xizmati. Ushbu kodni hech kimga bermang! Firibgarlardan ehtiyot bo'ling! Ruya tizimidagi parol o'zgartirilmoqda. Kod: %s. %s",
                 smsCode,
                 "aSFEVggf"
         );
@@ -24,7 +24,7 @@ public class NotifyUtils {
 
     public String getLoginByQrScanMessage(String smsCode) {
         return String.format(
-                "XAZNA sms xizmati. Ushbu kodni hech kimga bermang! Firibgarlardan ehtiyot bo'ling! XAZNA tizimiga kirilmoqda. Kod: %s.",
+                "Ruya sms xizmati. Ushbu kodni hech kimga bermang! Firibgarlardan ehtiyot bo'ling! Ruya tizimiga kirilmoqda. Kod: %s.",
                 smsCode
         );
     }
@@ -39,7 +39,7 @@ public class NotifyUtils {
 
     public String getSignMessage(String smsCode) {
         return String.format(
-                "XAZNA sms xizmati. Ushbu kodni hech kimga bermang! Firibgarlardan ehtiyot bo'ling! XAZNA tizimiga kirilmoqda. Kod: %s. %s",
+                "Ruya sms xizmati. Ushbu kodni hech kimga bermang! Firibgarlardan ehtiyot bo'ling! Ruya tizimiga kirilmoqda. Kod: %s. %s",
                 smsCode,
                 "sdRgFknfs"
         );

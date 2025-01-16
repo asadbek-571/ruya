@@ -12,6 +12,8 @@ import uz.ruya.mobile.core.rest.endpoint.IdentEndpoint;
 import uz.ruya.mobile.core.rest.peyload.req.auth.*;
 import uz.ruya.mobile.core.rest.service.IdentityService;
 
+import javax.servlet.http.HttpServletResponse;
+
 /**
  Asadbek Kushakov 12/26/2024 1:18 PM 
  */
@@ -101,6 +103,20 @@ public class IdentController implements IdentEndpoint {
         try {
             var result = service.getAgreementUrl();
             return GenericResponse.success(40000, "Success", result);
+        } catch (Throwable th) {
+            Logger.error(th);
+            return GenericResponse.error(20000, "Неизвестная ошибка");
+        }
+    }
+
+
+    @Override
+    public ResponseEntity<?> tokenRefresh(ReqTokenRefresh request, HttpServletResponse httpServletResponse) {
+        try {
+            var result = service.tokenRefresh(request.getAccessToken(), httpServletResponse);
+            return GenericResponse.success(40000, "Success", result);
+        } catch (NotAuthorizationException e) {
+            return GenericResponse.error(20401, e.getMessage());
         } catch (Throwable th) {
             Logger.error(th);
             return GenericResponse.error(20000, "Неизвестная ошибка");

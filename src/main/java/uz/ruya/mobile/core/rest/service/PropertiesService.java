@@ -20,6 +20,8 @@ public interface PropertiesService {
 
     Long getAccessTokenExpireHours();
 
+    Long getAccessTokenExpireHours(String username);
+
     String getPolicyUrlForRegistration();
 
 }

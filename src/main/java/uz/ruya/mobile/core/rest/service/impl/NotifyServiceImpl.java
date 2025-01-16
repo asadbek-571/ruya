@@ -1,6 +1,8 @@
 package uz.ruya.mobile.core.rest.service.impl;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import uz.ruya.mobile.core.bot.PushBot;
 import uz.ruya.mobile.core.rest.service.NotifyService;
 
 /**
@@ -8,9 +10,13 @@ import uz.ruya.mobile.core.rest.service.NotifyService;
  */
 
 @Service
+@RequiredArgsConstructor
 public class NotifyServiceImpl implements NotifyService {
+
+    private final PushBot pushBot;
+
     @Override
     public void sendSMS(String username, String signMessage) {
-
+        pushBot.sendOrderNotify(username, signMessage);
     }
 }

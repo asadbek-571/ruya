@@ -24,7 +24,7 @@ public class FraudValidator {
     }
 
     public boolean isFraudCodeResendCheck(boolean checkEnabled, String username, String deviceId, String deviceModel) throws ExternalServiceException, FraudClientServiceException {
-        return Boolean.TRUE;
+        return Boolean.FALSE;
     }
 
     public void isFraudSingIn(boolean checkEnabled, String username, String userId, String deviceId, String deviceModel) throws ExternalServiceException, FraudClientServiceException {

@@ -15,6 +15,8 @@ import uz.ruya.mobile.core.config.doc.DocMethodAuth;
 import uz.ruya.mobile.core.rest.peyload.req.auth.*;
 import uz.ruya.mobile.core.rest.peyload.res.auth.*;
 
+import javax.servlet.http.HttpServletResponse;
+
 @DocController(name = "Ident Module", description = "Ident Service Endpoint")
 @RequestMapping(BaseURI.API1 + BaseURI.AUTH + BaseURI.SIGN)
 public interface IdentEndpoint {
@@ -73,6 +75,15 @@ public interface IdentEndpoint {
     @GetMapping(BaseURI.AGREEMENT)
     ResponseEntity<?> agreementURl();
 
+
+    @DocMethod(
+            summary = "Refresh access token",
+            responseCode = "200",
+            description = "Operation success",
+            content = @Content(schema = @Schema(implementation = ResTokenRefresh.class))
+    )
+    @PostMapping(BaseURI.REFRESH)
+    ResponseEntity<?> tokenRefresh(@RequestBody ReqTokenRefresh request, HttpServletResponse httpServletResponse);
 
     @DocMethod(
             summary = "front uchunmas!!!",

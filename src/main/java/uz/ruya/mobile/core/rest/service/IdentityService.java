@@ -7,6 +7,7 @@ import uz.ruya.mobile.core.rest.peyload.req.auth.ReqPassword;
 import uz.ruya.mobile.core.rest.peyload.res.auth.*;
 
 import javax.management.relation.RoleNotFoundException;
+import javax.servlet.http.HttpServletResponse;
 import java.util.UUID;
 
 public interface IdentityService {
@@ -78,6 +79,11 @@ public interface IdentityService {
             String token
     ) throws
             InvalidTokenException;
+
+    ResTokenRefresh tokenRefresh(
+            UUID accessToken,
+            HttpServletResponse httpServletResponse
+    ) throws NotAuthorizationException;
 
     SuccessMessage encPassword(ReqPassword request);
 }

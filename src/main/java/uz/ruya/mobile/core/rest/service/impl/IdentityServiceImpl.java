@@ -16,6 +16,7 @@ import uz.ruya.mobile.core.message.MessageKey;
 import uz.ruya.mobile.core.message.MessageSingleton;
 import uz.ruya.mobile.core.rest.entity.auth.*;
 import uz.ruya.mobile.core.rest.enums.BaseStatus;
+import uz.ruya.mobile.core.rest.enums.Headers;
 import uz.ruya.mobile.core.rest.enums.SignStatus;
 import uz.ruya.mobile.core.rest.enums.UserRoleType;
 import uz.ruya.mobile.core.rest.peyload.req.auth.ReqPassword;
@@ -31,6 +32,7 @@ import uz.ruya.mobile.core.rest.validator.FraudValidator;
 
 import javax.crypto.Cipher;
 import javax.management.relation.RoleNotFoundException;
+import javax.servlet.http.HttpServletResponse;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.PrivateKey;
@@ -77,6 +79,7 @@ public class IdentityServiceImpl implements IdentityService {
 
         if ("998979497771".equals(username)) {
             code = "232323";
+            notifyService.sendSMS(username, notifyUtils.getSignMessage(code));
         } else if (smsAvailable) {
             notifyService.sendSMS(username, notifyUtils.getSignMessage(code));
         }
@@ -98,7 +101,7 @@ public class IdentityServiceImpl implements IdentityService {
     }
 
     @Override
-    public ResSignUserVerify signUserVerify(UUID identity, String code) throws SignInitNotFoundException, SignInitCodeIncorrectException, SignInitCodeExpireException, SignInitExpireException, SignInitStatusIncorrectException, PairKeyGenerationException, SignInitCodeRetryException, ExternalServiceException, FraudClientServiceException, EntityNotFoundException {
+    public ResSignUserVerify signUserVerify(UUID identity, String code) throws SignInitNotFoundException, SignInitCodeIncorrectException, SignInitCodeExpireException, SignInitExpireException, SignInitStatusIncorrectException, PairKeyGenerationException, SignInitCodeRetryException, ExternalServiceException, FraudClientServiceException {
 
         SignInit sign = this.signVerify(identity, code);
 
@@ -206,6 +209,7 @@ public class IdentityServiceImpl implements IdentityService {
 
         if ("998979497771".equals(username)) {
             code = "232323";
+            notifyService.sendSMS(username, notifyUtils.getSignMessage(code));
         } else {
             notifyService.sendSMS(username, notifyUtils.getSignMessage(code));
         }
@@ -248,6 +252,27 @@ public class IdentityServiceImpl implements IdentityService {
         } catch (Throwable th) {
             throw new InvalidTokenException(20402, messageSingleton.getMessage(MessageKey.INVALID_TOKEN));
         }
+    }
+
+
+    @Override
+    public ResTokenRefresh tokenRefresh(UUID accessToken, HttpServletResponse httpServletResponse) throws NotAuthorizationException {
+
+        DeviceType deviceType = GlobalVar.getDEVICE_TYPE();
+
+        Optional<UserAccess> accessOptional = userAccessRepo.findByActiveAuthAndWithType(
+                accessToken,
+                deviceType
+        );
+
+        if (accessOptional.isEmpty()) {
+            httpServletResponse.addHeader("X-Action", Headers.LOGOUT.toString());
+            throw new NotAuthorizationException(messageSingleton.getMessage(MessageKey.INVALID_TOKEN));
+        }
+
+        UserAccess userAccess = accessOptional.get();
+
+        return this.executeRefreshTokenWithRemovingOldData(userAccess, deviceType);
     }
 
     @Override
@@ -422,6 +447,39 @@ public class IdentityServiceImpl implements IdentityService {
             throw new SignInitNotFoundException(messageSingleton.getMessage(MessageKey.DATA_NOT_FOUND));
         }
         return signOptional.get();
+    }
+
+    private ResTokenRefresh executeRefreshTokenWithRemovingOldData(UserAccess userAccess, DeviceType deviceType) {
+
+        User authUser = userAccess.getUser();
+
+        Long accessTokenExpireHours = this.getAccessTokenExpireHours(authUser);
+
+        userAccess.setAccessToken(CoreUtils.generateTokenUUID());
+        userAccess.setAccessTokenExpire(LocalDateTime.now().plusHours(accessTokenExpireHours));
+        userAccess.setIpAddress(GlobalVar.getIpAddress());
+        userAccess.setUserAgent(GlobalVar.getUserAgent());
+        userAccess.setType(deviceType);
+        userAccess = userAccessRepo.saveAndFlush(userAccess);
+
+
+        ResTokenRefresh.ResUserAccess access = new ResTokenRefresh.ResUserAccess(
+                userAccess.getAccessToken(),
+                accessTokenExpireHours * 60 * 60
+        );
+
+        ResTokenRefresh result = new ResTokenRefresh();
+        result.setUser(new ResTokenRefresh.ResUserSimple(authUser));
+        result.setAccess(access);
+        return result;
+    }
+
+    private Long getAccessTokenExpireHours(User authUser) {
+        if (CoreUtils.isPresent(authUser)) {
+            return propertiesService.getAccessTokenExpireHours(authUser.getUsername());
+        } else {
+            return propertiesService.getAccessTokenExpireHours();
+        }
     }
 
     public static boolean isTokenExpired(LocalDateTime expirationTime) {
