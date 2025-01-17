@@ -51,6 +51,7 @@ public class BeforeFilter extends OncePerRequestFilter {
             "/api/v1/auth/sign/check/user",
             "/api/v1/auth/sign/user/verify",
             "/api/v1/auth/sign/in",
+            "/api/v1/auth/sign/up",
             "/api/v1/auth/sign/code/resend",
             "/api/v1/auth/sign/agreement",
             "/api/v1/auth/sign/encrypt/password"
