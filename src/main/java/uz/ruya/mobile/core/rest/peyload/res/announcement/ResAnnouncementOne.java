@@ -13,6 +13,8 @@ import uz.ruya.mobile.core.rest.peyload.base.ResImg;
 import uz.ruya.mobile.core.rest.peyload.res.ResAmount;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  Asadbek Kushakov 1/6/2025 3:04 PM 
@@ -33,6 +35,9 @@ public class ResAnnouncementOne implements Serializable {
     private Boolean isApplied = false;
     private Integer appliedQty;
     private String addressName;
+    private List<String> tags = new ArrayList<>(List.of("Full Time", "Remote"));
+    private Contact contact;
+
 
     public ResAnnouncementOne(Announcement ann) {
         this.id = ann.getId();
@@ -53,5 +58,29 @@ public class ResAnnouncementOne implements Serializable {
             this.amount = new ResAmount(ann.getAmount(), ann.getCurrency());
         }
 
+        if (CoreUtils.isPresent(ann.getUser())) {
+
+            var user = ann.getUser();
+            var contact = new Contact();
+
+            if (CoreUtils.isPresent(user.getPhone())) {
+                contact.setPhone(user.getPhone());
+            }
+            if (CoreUtils.isPresent(user.getEmail())) {
+                contact.setEmail(user.getEmail());
+            }
+            this.contact = contact;
+        }
+
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Contact implements Serializable {
+        private String phone;
+        private String email;
     }
 }

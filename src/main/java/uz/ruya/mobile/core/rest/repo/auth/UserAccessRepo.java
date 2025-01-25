@@ -1,10 +1,13 @@
 package uz.ruya.mobile.core.rest.repo.auth;
 
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import uz.ruya.mobile.core.base.BaseRepositoryUUID;
 import uz.ruya.mobile.core.config.core.DeviceType;
+import uz.ruya.mobile.core.rest.entity.auth.User;
 import uz.ruya.mobile.core.rest.entity.auth.UserAccess;
 
 import java.util.Optional;
@@ -32,5 +35,10 @@ UserAccessRepo extends BaseRepositoryUUID<UserAccess> {
             @Param("accessToken") UUID accessToken,
             @Param("deviceType") DeviceType type
     );
+
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM UserAccess a WHERE a.user = :user")
+    void deleteAllAccessByUser(@Param("user") User user);
 
 }

@@ -13,7 +13,7 @@ import uz.ruya.mobile.core.rest.peyload.res.announcement.ResCategoryParameters;
 
 public interface AnnouncementService {
 
-    ResPaging<ResAnnouncementOne> announcementPage(ReqAnnouncement request);
+    ResPaging<ResAnnouncementOne> announcementPage(ReqAnnouncement request) throws EntityNotFoundException;
 
     SuccessMessage addJobAnnouncement(ReqAddAnnouncement request) throws EntityNotFoundException;
 

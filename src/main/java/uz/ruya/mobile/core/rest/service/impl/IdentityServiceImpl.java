@@ -360,6 +360,9 @@ public class IdentityServiceImpl implements IdentityService {
 
         Long accessTokenExpireHours = propertiesService.getAccessTokenExpireHours();
 
+        // delete old access by user
+        userAccessRepo.deleteAllAccessByUser(authUser);
+
         UserAccess authAccess = new UserAccess();
         authAccess.setUser(authUser);
         authAccess.setRefreshToken(refreshToken);

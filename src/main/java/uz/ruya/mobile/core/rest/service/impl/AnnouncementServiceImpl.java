@@ -10,6 +10,7 @@ import uz.ruya.mobile.core.config.core.GlobalVar;
 import uz.ruya.mobile.core.config.core.SuccessMessage;
 import uz.ruya.mobile.core.config.excaption.EntityNotFoundException;
 import uz.ruya.mobile.core.config.utils.CoreUtils;
+import uz.ruya.mobile.core.config.utils.DateUtils;
 import uz.ruya.mobile.core.message.MessageKey;
 import uz.ruya.mobile.core.message.MessageSingleton;
 import uz.ruya.mobile.core.rest.entity.announcement.Announcement;
@@ -18,6 +19,7 @@ import uz.ruya.mobile.core.rest.entity.announcement.Category;
 import uz.ruya.mobile.core.rest.entity.announcement.CategoryParam;
 import uz.ruya.mobile.core.rest.entity.user.UserProfile;
 import uz.ruya.mobile.core.rest.enums.AnnouncementType;
+import uz.ruya.mobile.core.rest.enums.CurrencyType;
 import uz.ruya.mobile.core.rest.peyload.base.AddressDto;
 import uz.ruya.mobile.core.rest.peyload.req.ReqAmount;
 import uz.ruya.mobile.core.rest.peyload.req.ReqLongId;
@@ -35,11 +37,13 @@ import uz.ruya.mobile.core.rest.repo.announcement.AnnouncementRepo;
 import uz.ruya.mobile.core.rest.repo.announcement.CategoryParamRepo;
 import uz.ruya.mobile.core.rest.repo.announcement.CategoryRepo;
 import uz.ruya.mobile.core.rest.service.AnnouncementService;
+import uz.ruya.mobile.core.rest.service.UserService;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -166,7 +170,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     }
 
     @Override
-    public ResPaging<ResAnnouncementOne> announcementPage(ReqAnnouncement request) {
+    public ResPaging<ResAnnouncementOne> announcementPage(ReqAnnouncement request) throws EntityNotFoundException {
         ReqPaging paging = request.getPaging();
         PageRequest pageRequest = PageRequest.of(paging.getPage(), paging.getSize());
 
@@ -181,7 +185,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         return new ResPaging<>(list, new ResPagingParams(page.getNumber(), page.getTotalPages(), page.getTotalElements()));
     }
 
-    private Specification<Announcement> buildSpecifications(ReqAnnouncement.Filter filter) {
+    private Specification<Announcement> buildSpecifications(ReqAnnouncement.Filter filter) throws EntityNotFoundException {
 
         if (CoreUtils.isEmpty(filter)) {
             return Specification.where(null);
@@ -190,21 +194,84 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         Specification<Announcement> spec = Specification.where(null);
 
         if (CoreUtils.isPresent(filter.getCategoryId())) {
-            spec = spec.and(this.hasJobCategory(filter.getCategoryId()));
+            Category category = categoryRepo.findById(filter.getCategoryId())
+                    .orElseThrow(() -> new EntityNotFoundException(messageSingleton.getMessage(MessageKey.CATEGORY_NOT_FOUND)));
+
+            spec = spec.and(this.hasJobCategory(category));
         }
         if (CoreUtils.isPresent(filter.getType())) {
             spec = spec.and(this.hasType(filter.getType()));
         }
 
+        if (CoreUtils.isPresent(filter.getTitle())) {
+            spec = spec.and(this.hasTitle(filter.getTitle()));
+        }
+
+        if (CoreUtils.isPresent(filter.getFromDate()) && CoreUtils.isPresent(filter.getToDate())) {
+            LocalDateTime from = DateUtils.parseFLocalDateTime(filter.getFromDate());
+            LocalDateTime to = DateUtils.parseFLocalDateTime(filter.getToDate());
+            spec = spec.and(this.hasDate(from, to));
+        }
+
+        if (CoreUtils.isPresent(filter.getFromAmount()) && CoreUtils.isPresent(filter.getToAmount())) {
+            spec = spec.and(this.hasAmount(filter.getFromAmount(), filter.getToAmount()));
+        }
+
+        if (CoreUtils.isPresent(filter.getCurrencyType())) {
+            spec = spec.and(this.hasCurrency(filter.getCurrencyType()));
+        }
+
+        if (CoreUtils.isPresent(filter.getParamFilters())) {
+            spec = spec.and(this.hasParamFilter(filter.getParamFilters()));
+        }
+
+        // AnnouncementParameter orqali filter qilish
+
         return spec;
     }
 
-    public Specification<Announcement> hasJobCategory(Long id) {
-        return (root, query, criteriaBuilder) -> CoreUtils.isEmpty(id) ? null : criteriaBuilder.equal(root.get("category_id"), id);
+    public Specification<Announcement> hasJobCategory(Category category) {
+        return (root, query, cb) -> CoreUtils.isEmpty(category) ? null : cb.equal(root.get("category"), category);
+    }
+
+    public Specification<Announcement> hasAmount(Long from, Long to) {
+        return (root, query, cb) -> CoreUtils.isEmpty(from) && CoreUtils.isEmpty(to) ? null : cb.between(root.get("amount"), from, to);
+    }
+
+    public Specification<Announcement> hasCurrency(CurrencyType type) {
+        return (root, query, cb) -> CoreUtils.isEmpty(type) ? null : cb.equal(root.get("currency"), type);
+    }
+
+    public Specification<Announcement> hasDate(LocalDateTime from, LocalDateTime to) {
+        return (root, query, cb) -> CoreUtils.isEmpty(from) && CoreUtils.isEmpty(to) ? null : cb.between(root.get("createdAt"), from, to);
     }
 
     public Specification<Announcement> hasType(AnnouncementType type) {
-        return (root, query, criteriaBuilder) -> CoreUtils.isEmpty(type) ? null : criteriaBuilder.equal(root.get("type"), type);
+        return (root, query, cb) -> CoreUtils.isEmpty(type) ? null : cb.equal(root.get("type"), type);
     }
+
+    public Specification<Announcement> hasTitle(String title) {
+        return (root, query, cb) -> CoreUtils.isEmpty(title) ? null : cb.like(cb.lower(root.get("title")), "%" + title.toLowerCase() + "%");
+    }
+
+    public Specification<Announcement> hasParamFilter(Map<String, String> filterMap) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            filterMap.forEach((key, value) -> {
+                Subquery<Long> subquery = query.subquery(Long.class);
+                Root<AnnouncementParameter> paramRoot = subquery.from(AnnouncementParameter.class);
+                subquery.select(paramRoot.get("announcement").get("id"))
+                        .where(cb.and(
+                                cb.equal(paramRoot.get("key"), key),
+                                cb.equal(paramRoot.get("value"), value)
+                        ));
+                predicates.add(cb.in(root.get("id")).value(subquery));
+            });
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
 
 }

@@ -11,6 +11,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
@@ -43,6 +44,15 @@ public class DateUtils {
 
     public static LocalDateTime refreshTokenExpireWeb() {
         return LocalDateTime.now().plusDays(1L);
+    }
+
+    public static LocalDateTime parseFLocalDateTime(String dateTimeString) {
+        try {
+            return LocalDateTime.parse(dateTimeString, fLocalDateTime);
+        } catch (DateTimeParseException e) {
+            System.err.println("Invalid date-time format: " + dateTimeString);
+            return null;
+        }
     }
 
     public static LocalDateTime emailCodeExpire() {

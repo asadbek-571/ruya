@@ -39,6 +39,7 @@ public class ResCategoryList implements Serializable {
         private Long id;
         private ResImg icon;
         private String name;
+        private Integer totalAnnouncement;
         private CategoryType type;
 
         public ResCategoryOne(Category category) {
