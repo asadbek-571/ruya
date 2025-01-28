@@ -13,6 +13,7 @@ import uz.ruya.mobile.core.rest.peyload.req.ReqLongId;
 import uz.ruya.mobile.core.rest.peyload.req.announcement.ReqAddAnnouncement;
 import uz.ruya.mobile.core.rest.peyload.req.announcement.ReqAnnouncement;
 import uz.ruya.mobile.core.rest.peyload.req.announcement.ReqCategory;
+import uz.ruya.mobile.core.rest.peyload.req.announcement.ReqCategoryParameters;
 import uz.ruya.mobile.core.rest.service.AnnouncementService;
 
 /**
@@ -40,7 +41,7 @@ public class AnnouncementController implements AnnouncementEndpoint {
     }
 
     @Override
-    public ResponseEntity<?> getCategoryParam(ReqLongId request) {
+    public ResponseEntity<?> getCategoryParam(ReqCategoryParameters request) {
         try {
             var result = service.getCategoryParam(request);
             return GenericResponse.success(40000, "Success", result);

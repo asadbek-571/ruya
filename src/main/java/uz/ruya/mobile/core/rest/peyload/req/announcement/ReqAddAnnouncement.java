@@ -28,6 +28,7 @@ public class ReqAddAnnouncement implements Serializable {
     private AddressDto address;
     private ReqAmount price;
     private AnnouncementType type;
+    private List<String> attachments = new ArrayList<>();
     private List<ReqAddAnnouncementParam> params = new ArrayList<>();
 
     @ToString

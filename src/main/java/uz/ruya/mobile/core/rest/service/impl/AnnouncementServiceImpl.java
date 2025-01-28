@@ -27,9 +27,11 @@ import uz.ruya.mobile.core.rest.peyload.req.ReqPaging;
 import uz.ruya.mobile.core.rest.peyload.req.announcement.ReqAddAnnouncement;
 import uz.ruya.mobile.core.rest.peyload.req.announcement.ReqAnnouncement;
 import uz.ruya.mobile.core.rest.peyload.req.announcement.ReqCategory;
+import uz.ruya.mobile.core.rest.peyload.req.announcement.ReqCategoryParameters;
 import uz.ruya.mobile.core.rest.peyload.res.ResPaging;
 import uz.ruya.mobile.core.rest.peyload.res.ResPagingParams;
 import uz.ruya.mobile.core.rest.peyload.res.announcement.ResAnnouncementOne;
+import uz.ruya.mobile.core.rest.peyload.res.announcement.ResAnnouncementOneFull;
 import uz.ruya.mobile.core.rest.peyload.res.announcement.ResCategoryList;
 import uz.ruya.mobile.core.rest.peyload.res.announcement.ResCategoryParameters;
 import uz.ruya.mobile.core.rest.repo.announcement.AnnouncementParameterRepo;
@@ -37,7 +39,6 @@ import uz.ruya.mobile.core.rest.repo.announcement.AnnouncementRepo;
 import uz.ruya.mobile.core.rest.repo.announcement.CategoryParamRepo;
 import uz.ruya.mobile.core.rest.repo.announcement.CategoryRepo;
 import uz.ruya.mobile.core.rest.service.AnnouncementService;
-import uz.ruya.mobile.core.rest.service.UserService;
 
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
@@ -75,12 +76,12 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     }
 
     @Override
-    public ResCategoryParameters getCategoryParam(ReqLongId request) throws EntityNotFoundException {
+    public ResCategoryParameters getCategoryParam(ReqCategoryParameters request) throws EntityNotFoundException {
 
-        Category category = categoryRepo.findById(request.getId())
+        Category category = categoryRepo.findById(request.getCategoryId())
                 .orElseThrow(() -> new EntityNotFoundException(messageSingleton.getMessage(MessageKey.CATEGORY_NOT_FOUND)));
 
-        List<CategoryParam> params = category.getParams();
+        List<CategoryParam> params = categoryParamRepo.findAllByCategoryAndIsFilter(category, request.getIsFilter());
 
         Optional<CategoryParam> optionalMainParam = params.stream().filter(categoryParam -> Boolean.TRUE.equals(categoryParam.getIsMainParent())).findFirst();
 
@@ -136,6 +137,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
                 .orElseThrow(() -> new EntityNotFoundException(messageSingleton.getMessage(MessageKey.CATEGORY_NOT_FOUND)));
 
         Announcement announcement = new Announcement();
+        announcement.setAttachmentIds(request.getAttachments());
         announcement.setDescription(request.getDescription());
         announcement.setTitle(request.getTitle());
         announcement.setType(request.getType());
@@ -183,6 +185,16 @@ public class AnnouncementServiceImpl implements AnnouncementService {
                 .collect(Collectors.toList());
 
         return new ResPaging<>(list, new ResPagingParams(page.getNumber(), page.getTotalPages(), page.getTotalElements()));
+    }
+
+    @Override
+    public ResAnnouncementOneFull announcementDetails(ReqLongId request) throws EntityNotFoundException {
+
+        Announcement announcement = announcementRepo.findById(request.getId())
+                .orElseThrow(() -> new EntityNotFoundException(messageSingleton.getMessage(MessageKey.ENTITY_NOT_FOUND)));
+
+
+        return null;
     }
 
     private Specification<Announcement> buildSpecifications(ReqAnnouncement.Filter filter) throws EntityNotFoundException {

@@ -86,7 +86,6 @@ public class UserProfile extends BaseEntity {
     @Column(name = "blocked_cause")
     private String blockedCause;
 
-
     @OneToMany
     @JoinColumn(name = "user_id")
     private List<UserEducation> educations = new ArrayList<>();
@@ -94,6 +93,10 @@ public class UserProfile extends BaseEntity {
     @OneToMany
     @JoinColumn(name = "user_id")
     private List<UserExperience> experiences = new ArrayList<>();
+
+    @OneToMany
+    @JoinColumn(name = "user_id")
+    private List<UserSkill> skills = new ArrayList<>();
 
     @OneToMany
     @JoinColumn(name = "user_id")

@@ -59,6 +59,11 @@ public class Announcement extends BaseEntityLong {
     @JoinColumn(name = "category_id")
     private Category category;
 
+    @ElementCollection
+    @CollectionTable(name = "attachment_ids", schema = BaseScheme.CORE, joinColumns = @JoinColumn(name = "announcement_attachments_id"))
+    @Column(name = "attachment_id")
+    private List<String> attachmentIds = new ArrayList<>();
+
     @OneToMany
     @JoinColumn(name = "announcement_id")
     private List<AnnouncementParameter> parameters = new ArrayList<>();

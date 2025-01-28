@@ -236,4 +236,9 @@ public interface BaseURI {
     String RESET = "/reset";
     String TOKEN = "/token";
     String SCAN = "/scan";
+    String UPLOAD = "/upload";
+    String CV = "/cv";
+    String TOGGLE = "/toggle";
+    String SKILL = "/skill";
+    String ABOUT = "/about";
 }

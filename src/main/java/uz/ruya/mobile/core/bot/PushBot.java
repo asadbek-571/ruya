@@ -15,7 +15,7 @@ import java.util.Map;
 public class PushBot extends TelegramLongPollingBot {
 
     public PushBot() {
-        super("8058011686:AAFNAApn0Mk-ju2wNG4iNWKTSvXuCtdf7ks1");
+        super("8058011686:AAFNAApn0Mk-ju2wNG4iNWKTSvXuCtdf7ks");
     }
 
     @Override

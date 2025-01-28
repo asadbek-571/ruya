@@ -10,10 +10,10 @@ import uz.ruya.mobile.core.base.BaseURI;
 import uz.ruya.mobile.core.config.core.SuccessMessage;
 import uz.ruya.mobile.core.config.doc.DocController;
 import uz.ruya.mobile.core.config.doc.DocMethodAuth;
-import uz.ruya.mobile.core.rest.peyload.req.ReqLongId;
 import uz.ruya.mobile.core.rest.peyload.req.announcement.ReqAddAnnouncement;
 import uz.ruya.mobile.core.rest.peyload.req.announcement.ReqAnnouncement;
 import uz.ruya.mobile.core.rest.peyload.req.announcement.ReqCategory;
+import uz.ruya.mobile.core.rest.peyload.req.announcement.ReqCategoryParameters;
 import uz.ruya.mobile.core.rest.peyload.res.announcement.ResAnnouncementOne;
 import uz.ruya.mobile.core.rest.peyload.res.announcement.ResCategoryList;
 import uz.ruya.mobile.core.rest.peyload.res.announcement.ResCategoryParameters;
@@ -38,7 +38,7 @@ public interface AnnouncementEndpoint {
             content = @Content(schema = @Schema(implementation = ResCategoryParameters.class))
     )
     @PostMapping(BaseURI.GET + BaseURI.CATEGORY + BaseURI.PARAM)
-    ResponseEntity<?> getCategoryParam(@RequestBody ReqLongId request);
+    ResponseEntity<?> getCategoryParam(@RequestBody ReqCategoryParameters request);
 
     @DocMethodAuth(
             summary = "Add Announcement",

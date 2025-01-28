@@ -49,6 +49,9 @@ public class CategoryParam extends BaseEntityLong {
     @Column(name = "is_have_unist")
     private Boolean isHaveUnist = Boolean.FALSE;
 
+    @Column(name = "is_filter")
+    private Boolean isFilter = Boolean.FALSE;
+
     @Column(name = "is_unist")
     private Boolean isUnit = Boolean.FALSE;
 
