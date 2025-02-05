@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 import uz.ruya.mobile.core.rest.peyload.base.ResImg;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  Asadbek Kushakov 1/6/2025 3:50 PM 

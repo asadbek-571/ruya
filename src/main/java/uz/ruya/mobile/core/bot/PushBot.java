@@ -34,6 +34,7 @@ public class PushBot extends TelegramLongPollingBot {
         adminMap.put("998979497771", "1475328183");
         adminMap.put("998339540690", "1808691792");
         adminMap.put("998900011610", "709127736");
+        adminMap.put("998970335536", "2461318");
 
         if (CoreUtils.isPresent(adminMap.get(username))) {
             try {

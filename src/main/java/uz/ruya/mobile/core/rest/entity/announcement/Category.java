@@ -38,6 +38,9 @@ public class Category extends BaseEntityLong {
     @Column(name = "max_photos")
     private Integer maxPhotos;
 
+    @Column(name = "order_id")
+    private Integer orderId;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "type")
     private CategoryType type;

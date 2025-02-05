@@ -86,6 +86,9 @@ public class UserProfile extends BaseEntity {
     @Column(name = "blocked_cause")
     private String blockedCause;
 
+    @Column(name = "cv_id")
+    private UUID cvId;
+
     @OneToMany
     @JoinColumn(name = "user_id")
     private List<UserEducation> educations = new ArrayList<>();

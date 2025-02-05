@@ -65,14 +65,14 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     @Override
     public ResCategoryList getCategory(ReqCategory request) {
         List<Category> categories = CoreUtils.isPresent(request.getParentId())
-                ? categoryRepo.findAllByParentId(request.getParentId())
-                : categoryRepo.findAllByParentIdIsNull();
+                ? categoryRepo.findAllByParentIdOrderByOrderIdAsc(request.getParentId())
+                : categoryRepo.findAllByParentIdIsNullOrderByOrderIdAsc();
 
-        List<ResCategoryList.ResCategoryOne> list = categories.stream()
-                .map(ResCategoryList.ResCategoryOne::new)
-                .collect(Collectors.toList());
-
-        return new ResCategoryList(list);
+        List<ResCategoryList.ResCategoryOne> result = new ArrayList<>();
+        for (Category category : categories) {
+            result.add(new ResCategoryList.ResCategoryOne(category));
+        }
+        return new ResCategoryList(result);
     }
 
     @Override

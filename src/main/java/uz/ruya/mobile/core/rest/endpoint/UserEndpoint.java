@@ -14,6 +14,7 @@ import uz.ruya.mobile.core.config.doc.DocMethod;
 import uz.ruya.mobile.core.rest.peyload.req.ReqLongId;
 import uz.ruya.mobile.core.rest.peyload.req.ReqUUID;
 import uz.ruya.mobile.core.rest.peyload.req.user.ReqAboutInfo;
+import uz.ruya.mobile.core.rest.peyload.req.user.ReqAttachCv;
 import uz.ruya.mobile.core.rest.peyload.res.user.ResUser;
 
 @DocController(name = "User Module", description = "User Controller")
@@ -36,7 +37,7 @@ public interface UserEndpoint {
             content = @Content(schema = @Schema(implementation = SuccessMessage.class))
     )
     @PostMapping(BaseURI.UPLOAD + BaseURI.CV)
-    ResponseEntity<?> uploadCv(@RequestBody ReqUUID request);
+    ResponseEntity<?> uploadCv(@RequestBody ReqAttachCv request);
 
     @DocMethod(
             summary = "Add about me info",
