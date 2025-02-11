@@ -301,6 +301,7 @@ public enum MessageKey {
     ENTITY_NOT_FOUND_WITH_ID("entity.not.found.with.ID", "Entity Not Found withId: "),
     ENTITY_NOT_FOUND_WITH_GIVEN("entity.not.found.given", "Entity not found with given filter"),
     CATEGORY_NOT_FOUND("category.not.found", "Категория не найдена"),
+    ADDRESS_NOT_FOUND("address.not.found", "Manzil topilmadi"),
     NOTIFICATION_NOT_FOUND("notification.not.found", "Уведомление не найдено"),
     DATA_NOT_FOUND("data.not.found", "Данные не найдены"),
     DOCUMENT_NOT_FOUND("document.not.found", "Document not found"),

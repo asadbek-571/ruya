@@ -6,16 +6,18 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import uz.ruya.mobile.core.config.utils.CoreUtils;
+import uz.ruya.mobile.core.rest.service.PropertiesService;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 
 @Service
 public class PushBot extends TelegramLongPollingBot {
 
-    public PushBot() {
-        super("8058011686:AAFNAApn0Mk-ju2wNG4iNWKTSvXuCtdf7ks");
+    public PushBot(PropertiesService propertiesService) {
+        super(propertiesService.getBotToken());
     }
 
     @Override

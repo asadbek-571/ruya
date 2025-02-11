@@ -73,33 +73,12 @@ public class UserProfile extends BaseEntity {
     @Column(name = "avatar_id")
     private UUID avatarId;
 
-    @Column(name = "region_id")
-    private String regionId;
-
-    @Column(name = "district_id")
-    private String districtId;
-
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private BaseStatus status = BaseStatus.ACTIVE;
 
     @Column(name = "blocked_cause")
     private String blockedCause;
-
-    @Column(name = "cv_id")
-    private UUID cvId;
-
-    @OneToMany
-    @JoinColumn(name = "user_id")
-    private List<UserEducation> educations = new ArrayList<>();
-
-    @OneToMany
-    @JoinColumn(name = "user_id")
-    private List<UserExperience> experiences = new ArrayList<>();
-
-    @OneToMany
-    @JoinColumn(name = "user_id")
-    private List<UserSkill> skills = new ArrayList<>();
 
     @OneToMany
     @JoinColumn(name = "user_id")

@@ -8,9 +8,7 @@ import uz.ruya.mobile.core.config.logger.Logger;
 import uz.ruya.mobile.core.message.MessageKey;
 import uz.ruya.mobile.core.message.MessageSingleton;
 import uz.ruya.mobile.core.rest.endpoint.UserEndpoint;
-import uz.ruya.mobile.core.rest.peyload.req.ReqLongId;
-import uz.ruya.mobile.core.rest.peyload.req.user.ReqAboutInfo;
-import uz.ruya.mobile.core.rest.peyload.req.user.ReqAttachCv;
+import uz.ruya.mobile.core.rest.peyload.req.user.ReqSpecialization;
 import uz.ruya.mobile.core.rest.service.UserService;
 
 /**
@@ -29,32 +27,11 @@ public class UserController implements UserEndpoint {
         return GenericResponse.success(20000, "success");
     }
 
-    @Override
-    public ResponseEntity<?> uploadCv(ReqAttachCv request) {
-        try {
-            var result = userService.uploadCv(request.getAttachmentId(), request.getIsMainCv());
-            return GenericResponse.success(40000, "Success", result);
-        } catch (Throwable th) {
-            Logger.error(th);
-            return GenericResponse.error(20000, messageSingleton.getMessage(MessageKey.UNKNOWN_ERROR));
-        }
-    }
 
     @Override
-    public ResponseEntity<?> addDescription(ReqAboutInfo request) {
+    public ResponseEntity<?> attachAvatar(ReqSpecialization request) {
         try {
-            var result = userService.addDescription(request.getText());
-            return GenericResponse.success(40000, "Success", result);
-        } catch (Throwable th) {
-            Logger.error(th);
-            return GenericResponse.error(20000, messageSingleton.getMessage(MessageKey.UNKNOWN_ERROR));
-        }
-    }
-
-    @Override
-    public ResponseEntity<?> toggleSkill(ReqLongId request) {
-        try {
-            var result = userService.toggleSkill(request.getId());
+            var result = userService.attachAvatar(request);
             return GenericResponse.success(40000, "Success", result);
         } catch (Throwable th) {
             Logger.error(th);

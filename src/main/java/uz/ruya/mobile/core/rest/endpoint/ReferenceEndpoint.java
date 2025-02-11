@@ -5,10 +5,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import uz.ruya.mobile.core.base.BaseURI;
 import uz.ruya.mobile.core.config.doc.DocController;
 import uz.ruya.mobile.core.config.doc.DocMethod;
+import uz.ruya.mobile.core.rest.peyload.req.ReqLongId;
+import uz.ruya.mobile.core.rest.peyload.res.reference.ResAddressList;
+import uz.ruya.mobile.core.rest.peyload.res.reference.ResCurrencyList;
 import uz.ruya.mobile.core.rest.peyload.res.reference.ResReference;
 
 @DocController(name = "Reference Module", description = "Reference Controller")
@@ -23,5 +27,24 @@ public interface ReferenceEndpoint {
     )
     @GetMapping(BaseURI.SKILL + BaseURI.LIST + "/{name}")
     ResponseEntity<?> skillsList(@PathVariable(name = "name") String name);
+
+    @DocMethod(
+            summary = "Get Currency list",
+            responseCode = "200",
+            description = "Operation success",
+            content = @Content(schema = @Schema(implementation = ResCurrencyList.class))
+    )
+    @GetMapping(BaseURI.CURRENCY + BaseURI.LIST)
+    ResponseEntity<?> currencyList();
+
+
+    @DocMethod(
+            summary = "Get Address list",
+            responseCode = "200",
+            description = "Operation success",
+            content = @Content(schema = @Schema(implementation = ResAddressList.class))
+    )
+    @GetMapping(BaseURI.ADDRESS + BaseURI.LIST)
+    ResponseEntity<?> addressList(@RequestBody ReqLongId request);
 
 }

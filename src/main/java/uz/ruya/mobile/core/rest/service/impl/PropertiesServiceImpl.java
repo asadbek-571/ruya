@@ -140,4 +140,9 @@ public class PropertiesServiceImpl implements PropertiesService {
     public String getPolicyUrlForRegistration() {
         return getStringProperty("policy_url_for_registration", "https://file.ruya.uz/policy.html");
     }
+
+    @Override
+    public String getBotToken() {
+        return getStringProperty("get_bot_token", "18058011686:AAFNAApn0Mk-ju2wNG4iNWKTSvXuCtdf7ks");
+    }
 }

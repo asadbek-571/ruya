@@ -12,8 +12,6 @@ import uz.ruya.mobile.core.rest.endpoint.AnnouncementEndpoint;
 import uz.ruya.mobile.core.rest.peyload.req.ReqLongId;
 import uz.ruya.mobile.core.rest.peyload.req.announcement.ReqAddAnnouncement;
 import uz.ruya.mobile.core.rest.peyload.req.announcement.ReqAnnouncement;
-import uz.ruya.mobile.core.rest.peyload.req.announcement.ReqCategory;
-import uz.ruya.mobile.core.rest.peyload.req.announcement.ReqCategoryParameters;
 import uz.ruya.mobile.core.rest.service.AnnouncementService;
 
 /**
@@ -30,20 +28,9 @@ public class AnnouncementController implements AnnouncementEndpoint {
 
 
     @Override
-    public ResponseEntity<?> getCategory(ReqCategory request) {
+    public ResponseEntity<?> addAnnouncement(ReqAddAnnouncement request) {
         try {
-            var result = service.getCategory(request);
-            return GenericResponse.success(40000, "Success", result);
-        } catch (Throwable th) {
-            Logger.error(th);
-            return GenericResponse.error(20000, messageSingleton.getMessage(MessageKey.UNKNOWN_ERROR));
-        }
-    }
-
-    @Override
-    public ResponseEntity<?> getCategoryParam(ReqCategoryParameters request) {
-        try {
-            var result = service.getCategoryParam(request);
+            var result = service.addJobAnnouncement(request);
             return GenericResponse.success(40000, "Success", result);
         } catch (EntityNotFoundException th) {
             return GenericResponse.error(20000, th.getMessage());
@@ -54,9 +41,9 @@ public class AnnouncementController implements AnnouncementEndpoint {
     }
 
     @Override
-    public ResponseEntity<?> addJobAnnouncement(ReqAddAnnouncement request) {
+    public ResponseEntity<?> getAnnouncement(ReqLongId request) {
         try {
-            var result = service.addJobAnnouncement(request);
+            var result = service.getAnnouncement(request);
             return GenericResponse.success(40000, "Success", result);
         } catch (EntityNotFoundException th) {
             return GenericResponse.error(20000, th.getMessage());
@@ -71,7 +58,7 @@ public class AnnouncementController implements AnnouncementEndpoint {
         try {
             var result = service.announcementPage(request);
             return GenericResponse.success(40000, "Success", result);
-        }catch (Throwable th) {
+        } catch (Throwable th) {
             Logger.error(th);
             return GenericResponse.error(20000, messageSingleton.getMessage(MessageKey.UNKNOWN_ERROR));
         }

@@ -1,4 +1,4 @@
-package uz.ruya.mobile.core.rest.entity.announcement;
+package uz.ruya.mobile.core.rest.entity.specialization;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -8,6 +8,7 @@ import uz.ruya.mobile.core.base.BaseEntityLong;
 import uz.ruya.mobile.core.base.BaseScheme;
 import uz.ruya.mobile.core.config.core.GlobalVar;
 import uz.ruya.mobile.core.config.utils.CoreUtils;
+import uz.ruya.mobile.core.rest.enums.ParamType;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -19,17 +20,14 @@ import java.util.Optional;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "category_param", schema = BaseScheme.CORE)
-public class CategoryParam extends BaseEntityLong {
+@Table(name = "specialization_parameters", schema = BaseScheme.CORE)
+public class SpecializationParam extends BaseEntityLong {
 
     @Column(name = "label")
     private String label;
 
     @Column(name = "icon")
     private String icon;
-
-    @Column(name = "type")
-    private String type;
 
     @Column(name = "code")
     private String code;
@@ -42,21 +40,6 @@ public class CategoryParam extends BaseEntityLong {
 
     @Column(name = "disabled")
     private Boolean disabled;
-
-    @Column(name = "is_main_parent")
-    private Boolean isMainParent = Boolean.FALSE;
-
-    @Column(name = "is_have_unist")
-    private Boolean isHaveUnist = Boolean.FALSE;
-
-    @Column(name = "is_filter")
-    private Boolean isFilter = Boolean.FALSE;
-
-    @Column(name = "is_unist")
-    private Boolean isUnit = Boolean.FALSE;
-
-    @Column(name = "range")
-    private Boolean range = Boolean.FALSE;
 
     @Column(name = "is_required")
     private Boolean isRequired = Boolean.FALSE;
@@ -73,18 +56,22 @@ public class CategoryParam extends BaseEntityLong {
     @Column(name = "parent_id")
     private Long parentId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
-    private Category category;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type")
+    private ParamType type;
 
-    @OneToMany(mappedBy = "categoryParam")
-    private List<CategoryParamTranslate> translate = new ArrayList<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "specialization_id")
+    private Specialization specialization;
+
+    @OneToMany(mappedBy = "specializationParam")
+    private List<SpecializationParamTranslate> translate = new ArrayList<>();
 
 
     public String getLabelTranslate() {
         if (CoreUtils.isPresent(this.getTranslate())) {
 
-            Optional<CategoryParamTranslate> optional = this.getTranslate().stream()
+            Optional<SpecializationParamTranslate> optional = this.getTranslate().stream()
                     .filter(translate -> GlobalVar.getLANG().equals(translate.getLang())).findFirst();
 
             if (optional.isPresent()) {

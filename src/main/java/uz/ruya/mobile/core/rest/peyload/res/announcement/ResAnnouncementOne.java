@@ -35,9 +35,6 @@ public class ResAnnouncementOne implements Serializable {
     private Boolean isApplied = false;
     private Integer appliedQty;
     private String addressName;
-    private List<String> tags = new ArrayList<>(List.of("Full Time", "Remote"));
-    private Contact contact;
-
 
     public ResAnnouncementOne(Announcement ann) {
         this.id = ann.getId();
@@ -46,16 +43,16 @@ public class ResAnnouncementOne implements Serializable {
         this.date = DateUtils.monthFormat(ann.getCreatedAt());
 
         if (CoreUtils.isPresent(ann.getAddress())) {
-            this.addressName = ann.getAddress();
+            this.addressName = ann.getAddress().getName();
         }
-        if (CoreUtils.isPresent(ann.getCategory()) && CoreUtils.isPresent(ann.getCategory().getIcon())) {
-            this.icon = FileUtils.getCategoryIcon(ann.getCategory().getIcon());
+        if (CoreUtils.isPresent(ann.getSpecialization()) && CoreUtils.isPresent(ann.getSpecialization().getIcon())) {
+            this.icon = FileUtils.getCategoryIcon(ann.getSpecialization().getIcon());
         } else {
             this.icon = FileUtils.getCategoryIcon("default");
         }
 
-        if (CoreUtils.isPresent(ann.getAmount())) {
-            this.amount = new ResAmount(ann.getAmount(), ann.getCurrency());
+        if (CoreUtils.isPresent(ann.getPrice())) {
+            this.amount = new ResAmount(ann.getPrice(), ann.getCurrency());
         }
 
         if (CoreUtils.isPresent(ann.getUser())) {
@@ -69,7 +66,6 @@ public class ResAnnouncementOne implements Serializable {
             if (CoreUtils.isPresent(user.getEmail())) {
                 contact.setEmail(user.getEmail());
             }
-            this.contact = contact;
         }
 
     }

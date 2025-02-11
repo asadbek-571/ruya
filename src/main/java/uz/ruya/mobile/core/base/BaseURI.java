@@ -232,6 +232,7 @@ public interface BaseURI {
 
     String POPUP_ALERT = "/popup-alert";
     String ANNOUNCEMENT = "/announcement";
+    String SPECIALIZATION = "/specialization";
     String PASSWORD = "/password";
     String RESET = "/reset";
     String TOKEN = "/token";
@@ -241,4 +242,6 @@ public interface BaseURI {
     String TOGGLE = "/toggle";
     String SKILL = "/skill";
     String ABOUT = "/about";
+    String CURRENCY = "/currency";
+    String ADDRESS = "/address";
 }

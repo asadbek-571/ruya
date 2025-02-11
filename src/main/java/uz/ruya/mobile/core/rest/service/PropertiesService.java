@@ -24,4 +24,5 @@ public interface PropertiesService {
 
     String getPolicyUrlForRegistration();
 
+    String getBotToken();
 }

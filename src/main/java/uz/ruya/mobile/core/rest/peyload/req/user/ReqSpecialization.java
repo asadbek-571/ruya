@@ -1,8 +1,7 @@
-package uz.ruya.mobile.core.rest.peyload.req.announcement;
+package uz.ruya.mobile.core.rest.peyload.req.user;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
-import uz.ruya.mobile.core.rest.enums.AnnouncementType;
 import uz.ruya.mobile.core.rest.peyload.req.ReqAmount;
 
 import java.io.Serializable;
@@ -10,24 +9,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- Asadbek Kushakov 1/3/2025 6:01 PM 
+ Asadbek Kushakov 1/28/2025 2:45 PM 
  */
-
-@ToString
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class ReqAddAnnouncement implements Serializable {
+public class ReqSpecialization implements Serializable {
 
     private Long categoryId;
     private Long addressId;
     private String title;
     private ReqAmount price;
     private String description;
-    private AnnouncementType type;
-    private List<ReqAddAnnouncementParam> params = new ArrayList<>();
+    private List<ReqSpecialization.ReqSpecializationParam> params = new ArrayList<>();
 
     @ToString
     @Getter
@@ -35,7 +30,7 @@ public class ReqAddAnnouncement implements Serializable {
     @AllArgsConstructor
     @NoArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class ReqAddAnnouncementParam implements Serializable {
+    public static class ReqSpecializationParam implements Serializable {
 
         private Long id;
         private String code;
@@ -43,5 +38,6 @@ public class ReqAddAnnouncement implements Serializable {
         private List<String> multiValue = new ArrayList<>();
 
     }
+
 
 }

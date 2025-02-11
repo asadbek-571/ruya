@@ -25,7 +25,7 @@ UserAccessRepo extends BaseRepositoryUUID<UserAccess> {
     Optional<UserAccess> findByAccessToken(@Param("accessToken") UUID accessToken);
 
     @Query(
-            "FROM UserAccess a " +
+            "SELECT a FROM UserAccess a " +
                     "WHERE a.accessToken = :accessToken " +
                     "AND a.refreshTokenExpire > CURRENT_TIMESTAMP " +
                     "AND a.user.status = 'ACTIVE'" +

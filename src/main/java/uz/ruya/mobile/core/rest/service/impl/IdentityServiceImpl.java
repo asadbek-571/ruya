@@ -15,6 +15,7 @@ import uz.ruya.mobile.core.config.utils.NotifyUtils;
 import uz.ruya.mobile.core.message.MessageKey;
 import uz.ruya.mobile.core.message.MessageSingleton;
 import uz.ruya.mobile.core.rest.entity.auth.*;
+import uz.ruya.mobile.core.rest.entity.user.UserProfile;
 import uz.ruya.mobile.core.rest.enums.BaseStatus;
 import uz.ruya.mobile.core.rest.enums.Headers;
 import uz.ruya.mobile.core.rest.enums.SignStatus;
@@ -25,6 +26,7 @@ import uz.ruya.mobile.core.rest.repo.UserRoleRepo;
 import uz.ruya.mobile.core.rest.repo.auth.SignInitRepo;
 import uz.ruya.mobile.core.rest.repo.auth.UserAccessRepo;
 import uz.ruya.mobile.core.rest.repo.auth.UserRepo;
+import uz.ruya.mobile.core.rest.repo.user.UserProfileRepo;
 import uz.ruya.mobile.core.rest.service.IdentityService;
 import uz.ruya.mobile.core.rest.service.NotifyService;
 import uz.ruya.mobile.core.rest.service.PropertiesService;
@@ -64,6 +66,7 @@ public class IdentityServiceImpl implements IdentityService {
     private final UserAccessRepo userAccessRepo;
     private final SignInitRepo signInitRepo;
     private final UserRepo userRepo;
+    private final UserProfileRepo userProfileRepo;
     private final UserRoleRepo userRoleRepository;
 
     @Override
@@ -166,7 +169,19 @@ public class IdentityServiceImpl implements IdentityService {
         user.setRole(optionalUserRole.get());
         user.setStatus(BaseStatus.ACTIVE);
 
-        userRepo.saveAndFlush(user);
+        user = userRepo.saveAndFlush(user);
+
+        UserProfile userProfile = new UserProfile();
+        userProfile.setIsEnableEmail(Boolean.FALSE);
+        userProfile.setPhone(sign.getUsername());
+        userProfile.setStatus(BaseStatus.ACTIVE);
+        userProfile.setLang(GlobalVar.getLANG());
+        userProfile.setIsAlert(Boolean.TRUE);
+        userProfile.setFirstName(firstName);
+        userProfile.setUuid(user.getId());
+        userProfile.setLastName(lastName);
+        userProfile.setEmail(email);
+        userProfileRepo.save(userProfile);
 
         var signUp = new ResSignUp();
         signUp.setMessage(messageSingleton.getMessage(MessageKey.USER_SUCCESSFULLY_REGISTERED));

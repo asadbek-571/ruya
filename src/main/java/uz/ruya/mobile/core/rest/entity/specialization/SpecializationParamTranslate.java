@@ -1,4 +1,4 @@
-package uz.ruya.mobile.core.rest.entity.announcement;
+package uz.ruya.mobile.core.rest.entity.specialization;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,8 +15,8 @@ import javax.persistence.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "category_translate", schema = BaseScheme.CORE)
-public class CategoryTranslate extends BaseEntityLong {
+@Table(name = "specialization_param_translate", schema = BaseScheme.CORE)
+public class SpecializationParamTranslate extends BaseEntityLong {
 
     @Column(name = "name")
     private String name;
@@ -26,7 +26,7 @@ public class CategoryTranslate extends BaseEntityLong {
     private Lang lang;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
-    private Category category;
+    @JoinColumn(name = "specialization_param_id")
+    private SpecializationParam specializationParam;
 
 }

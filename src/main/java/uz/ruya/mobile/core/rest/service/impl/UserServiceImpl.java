@@ -2,21 +2,14 @@ package uz.ruya.mobile.core.rest.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import uz.ruya.mobile.core.config.core.GlobalVar;
 import uz.ruya.mobile.core.config.core.SuccessMessage;
-import uz.ruya.mobile.core.config.utils.FileUtils;
-import uz.ruya.mobile.core.rest.entity.attachemnt.AttachmentUser;
+import uz.ruya.mobile.core.message.MessageSingleton;
 import uz.ruya.mobile.core.rest.entity.user.UserProfile;
 import uz.ruya.mobile.core.rest.enums.BaseStatus;
-import uz.ruya.mobile.core.rest.enums.UserAttachType;
-import uz.ruya.mobile.core.rest.peyload.res.user.ResUserCvList;
-import uz.ruya.mobile.core.rest.repo.attachment.AttachmentRepo;
-import uz.ruya.mobile.core.rest.repo.attachment.AttachmentUserRepo;
+import uz.ruya.mobile.core.rest.peyload.req.user.ReqSpecialization;
 import uz.ruya.mobile.core.rest.repo.user.UserProfileRepo;
 import uz.ruya.mobile.core.rest.service.UserService;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,6 +22,7 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
 
     private final UserProfileRepo profileRepo;
+    private final MessageSingleton messageSingleton;
 
     @Override
     public UserProfile getProfile(UUID userUUID, String username, String email) {
@@ -50,22 +44,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public SuccessMessage uploadCv(UUID attachmentId, Boolean isMainCv) {
+    public SuccessMessage attachAvatar(ReqSpecialization request) {
         return null;
     }
 
-    @Override
-    public ResUserCvList cvList() {
-        return null;
-    }
-
-    @Override
-    public SuccessMessage addDescription(String description) {
-        return null;
-    }
-
-    @Override
-    public SuccessMessage toggleSkill(Long skillId) {
-        return null;
-    }
 }

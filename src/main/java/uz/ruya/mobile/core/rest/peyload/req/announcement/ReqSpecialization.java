@@ -15,7 +15,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ReqCategory implements Serializable {
+public class ReqSpecialization implements Serializable {
 
     private Long parentId;
 

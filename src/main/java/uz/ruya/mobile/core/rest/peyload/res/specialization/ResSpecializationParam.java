@@ -1,10 +1,9 @@
-package uz.ruya.mobile.core.rest.peyload.res.announcement;
+package uz.ruya.mobile.core.rest.peyload.res.specialization;
 
 import lombok.*;
-import uz.ruya.mobile.core.config.utils.FileUtils;
-import uz.ruya.mobile.core.rest.entity.announcement.Category;
-import uz.ruya.mobile.core.rest.entity.announcement.CategoryParam;
-import uz.ruya.mobile.core.rest.peyload.base.ResImg;
+import uz.ruya.mobile.core.rest.entity.specialization.Specialization;
+import uz.ruya.mobile.core.rest.entity.specialization.SpecializationParam;
+import uz.ruya.mobile.core.rest.enums.ParamType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -19,21 +18,15 @@ import java.util.List;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class ResCategoryParameters implements Serializable {
+public class ResSpecializationParam implements Serializable {
 
-    private Long id;
+    private Long specializationId;
     private String label;
-    private String code;
-    private Integer maxPhotos;
-    private ResImg icon;
     private List<Param> parameters = new ArrayList<>();
 
-    public ResCategoryParameters(Category category, CategoryParam categoryParam) {
-        this.id = categoryParam.getId();
-        this.label = category.getLabelTranslate();
-        this.code = categoryParam.getCode();
-        this.maxPhotos = category.getMaxPhotos();
-        this.icon = FileUtils.getParamIcon(categoryParam.getIcon());
+    public ResSpecializationParam(Specialization specialization) {
+        this.specializationId = specialization.getId();
+        this.label = specialization.getLabelTranslate();
     }
 
     @Getter
@@ -46,18 +39,16 @@ public class ResCategoryParameters implements Serializable {
         private Long id;
         private String code;
         private String label;
-        private String type;
-        private Boolean range = Boolean.FALSE;
+        private ParamType type;
         private ParamValidation validation;
-        private List<ParamValue> values = new ArrayList<>();
-        private List<ParamUnits> units = new ArrayList<>();
+        private String defaultValue;
+        private List<ParamValue> selectValues = new ArrayList<>();
 
-        public Param(CategoryParam parent) {
+        public Param(SpecializationParam parent) {
             this.id = parent.getId();
             this.label = parent.getLabelTranslate();
             this.code = parent.getCode();
             this.type = parent.getType();
-            this.range = parent.getRange();
             this.validation = new ParamValidation(parent);
         }
     }
@@ -71,10 +62,18 @@ public class ResCategoryParameters implements Serializable {
 
         private String label;
         private String value;
+        private String defaultValue;
         private Boolean disabled = Boolean.FALSE;
 
-        public ParamValue(CategoryParam child) {
+        public ParamValue(SpecializationParam child) {
             this.value = child.getValue();
+            this.label = child.getLabelTranslate();
+            this.disabled = child.getDisabled();
+        }
+
+        public ParamValue(SpecializationParam child, String defaultValue) {
+            this.value = child.getValue();
+            this.defaultValue = defaultValue;
             this.label = child.getLabelTranslate();
             this.disabled = child.getDisabled();
         }
@@ -92,27 +91,11 @@ public class ResCategoryParameters implements Serializable {
         private String pattern;
         private Boolean isRequired = Boolean.FALSE;
 
-        public ParamValidation(CategoryParam parent) {
+        public ParamValidation(SpecializationParam parent) {
             this.max = parent.getMax();
             this.min = parent.getMin();
             this.pattern = parent.getPattern();
             this.isRequired = parent.getIsRequired();
-        }
-    }
-
-    @Getter
-    @Setter
-    @ToString
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class ParamUnits implements Serializable {
-
-        private String value;
-        private String label;
-
-        public ParamUnits(CategoryParam paramUnit) {
-            this.value = paramUnit.getValue();
-            this.label = paramUnit.getLabel();
         }
     }
 

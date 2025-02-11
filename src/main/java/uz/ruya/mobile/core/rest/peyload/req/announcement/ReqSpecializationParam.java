@@ -16,9 +16,8 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ReqCategoryParameters implements Serializable {
+public class ReqSpecializationParam implements Serializable {
 
     private Long categoryId;
-    private Boolean isFilter = Boolean.FALSE;
 
 }
