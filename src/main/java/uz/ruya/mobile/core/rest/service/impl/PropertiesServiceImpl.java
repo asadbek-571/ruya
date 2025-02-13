@@ -143,6 +143,6 @@ public class PropertiesServiceImpl implements PropertiesService {
 
     @Override
     public String getBotToken() {
-        return getStringProperty("get_bot_token", "18058011686:AAFNAApn0Mk-ju2wNG4iNWKTSvXuCtdf7ks");
+        return getStringProperty("get_bot_token", "8058011686:AAFNAApn0Mk-ju2wNG4iNWKTSvXuCtdf7ks");
     }
 }

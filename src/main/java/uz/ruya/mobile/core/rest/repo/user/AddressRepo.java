@@ -9,7 +9,7 @@ import java.util.List;
 @Repository
 public interface AddressRepo extends BaseRepositoryLong<Address> {
 
-    List<Address> findAllByIsHaveChildTrue();
+    List<Address> findAllByParentIdIsNull();
 
     List<Address> findAllByParentId(Long parentId);
 

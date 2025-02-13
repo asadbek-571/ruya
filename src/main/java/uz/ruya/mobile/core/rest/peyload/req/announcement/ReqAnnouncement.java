@@ -42,7 +42,7 @@ public class ReqAnnouncement {
         private String fromDate;
         private String toDate;
         private AnnouncementType type;
-        Map<String, String> paramFilters = new HashMap<>();
+        private Map<String, String> paramFilters = new HashMap<>();
 
     }
 

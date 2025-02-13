@@ -26,7 +26,7 @@ public class ReferenceServiceImpl implements ReferenceService {
     public ResAddressList addressList(ReqLongId request) {
         List<Address> list = (CoreUtils.isPresent(request) && CoreUtils.isPresent(request.getId())) ?
                 addressRepo.findAllByParentId(request.getId()) :
-                addressRepo.findAllByIsHaveChildTrue();
+                addressRepo.findAllByParentIdIsNull();
         List<ResAddressList.ResAddressOne> resultList = new ArrayList<>();
         for (Address address : list) {
             resultList.add(new ResAddressList.ResAddressOne(address));

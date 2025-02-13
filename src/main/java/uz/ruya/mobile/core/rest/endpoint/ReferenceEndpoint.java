@@ -3,10 +3,7 @@ package uz.ruya.mobile.core.rest.endpoint;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import uz.ruya.mobile.core.base.BaseURI;
 import uz.ruya.mobile.core.config.doc.DocController;
 import uz.ruya.mobile.core.config.doc.DocMethod;
@@ -44,7 +41,7 @@ public interface ReferenceEndpoint {
             description = "Operation success",
             content = @Content(schema = @Schema(implementation = ResAddressList.class))
     )
-    @GetMapping(BaseURI.ADDRESS + BaseURI.LIST)
+    @PostMapping(BaseURI.ADDRESS + BaseURI.LIST)
     ResponseEntity<?> addressList(@RequestBody ReqLongId request);
 
 }

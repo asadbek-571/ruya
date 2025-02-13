@@ -163,10 +163,13 @@ public class IdentityServiceImpl implements IdentityService {
         }
 
         User user = new User();
-        user.setUsername(sign.getUsername());
-        user.setPhone(sign.getUsername());
         user.setPassword(passwordEncoder.encode(pass));
+        user.setUsername(sign.getUsername());
         user.setRole(optionalUserRole.get());
+        user.setPhone(sign.getUsername());
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        user.setEmail(email);
         user.setStatus(BaseStatus.ACTIVE);
 
         user = userRepo.saveAndFlush(user);
