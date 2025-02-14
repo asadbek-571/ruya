@@ -9,6 +9,7 @@ import uz.ruya.mobile.core.auth.AuthUser;
 import uz.ruya.mobile.core.config.core.GlobalVar;
 import uz.ruya.mobile.core.config.core.SuccessMessage;
 import uz.ruya.mobile.core.config.excaption.EntityNotFoundException;
+import uz.ruya.mobile.core.config.excaption.InvalidUserException;
 import uz.ruya.mobile.core.config.utils.CoreUtils;
 import uz.ruya.mobile.core.config.utils.DateUtils;
 import uz.ruya.mobile.core.message.MessageKey;
@@ -16,10 +17,12 @@ import uz.ruya.mobile.core.message.MessageSingleton;
 import uz.ruya.mobile.core.rest.entity.address.Address;
 import uz.ruya.mobile.core.rest.entity.announcement.Announcement;
 import uz.ruya.mobile.core.rest.entity.announcement.AnnouncementParameter;
+import uz.ruya.mobile.core.rest.entity.saved.SavedAd;
 import uz.ruya.mobile.core.rest.entity.specialization.Specialization;
 import uz.ruya.mobile.core.rest.entity.specialization.SpecializationParam;
 import uz.ruya.mobile.core.rest.entity.user.UserProfile;
 import uz.ruya.mobile.core.rest.enums.AnnouncementType;
+import uz.ruya.mobile.core.rest.enums.BaseStatus;
 import uz.ruya.mobile.core.rest.enums.CurrencyType;
 import uz.ruya.mobile.core.rest.peyload.req.ReqAmount;
 import uz.ruya.mobile.core.rest.peyload.req.ReqLongId;
@@ -31,12 +34,15 @@ import uz.ruya.mobile.core.rest.peyload.res.ResPaging;
 import uz.ruya.mobile.core.rest.peyload.res.ResPagingParams;
 import uz.ruya.mobile.core.rest.peyload.res.announcement.ResAnnouncementOne;
 import uz.ruya.mobile.core.rest.peyload.res.announcement.ResAnnouncementOneFull;
+import uz.ruya.mobile.core.rest.peyload.res.announcement.ResMyAnnouncementList;
+import uz.ruya.mobile.core.rest.peyload.res.announcement.ResMySavedAnnouncementList;
 import uz.ruya.mobile.core.rest.peyload.res.reference.ResAddressList;
 import uz.ruya.mobile.core.rest.peyload.res.specialization.ResSpecializationParam;
 import uz.ruya.mobile.core.rest.repo.announcement.AnnouncementParameterRepo;
 import uz.ruya.mobile.core.rest.repo.announcement.AnnouncementRepo;
 import uz.ruya.mobile.core.rest.repo.announcement.SpecializationParamRepo;
 import uz.ruya.mobile.core.rest.repo.announcement.SpecializationRepo;
+import uz.ruya.mobile.core.rest.repo.saved.SavedAdRepo;
 import uz.ruya.mobile.core.rest.repo.user.AddressRepo;
 import uz.ruya.mobile.core.rest.service.AnnouncementService;
 
@@ -62,6 +68,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     private final SpecializationRepo specializationRepo;
     private final SpecializationParamRepo specializationParamRepo;
     private final AnnouncementParameterRepo announcementParameterRepo;
+    private final SavedAdRepo savedAdRepository;
 
 
     @Override
@@ -108,14 +115,22 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         ReqPaging paging = request.getPaging();
         PageRequest pageRequest = PageRequest.of(paging.getPage(), paging.getSize());
 
+        List<Long> savedList = new ArrayList<>();
+        if (CoreUtils.isPresent(GlobalVar.getAuthUser()) && CoreUtils.isPresent(GlobalVar.getAuthUser().getProfile())) {
+            UserProfile profile = GlobalVar.getAuthUser().getProfile();
+            savedList.addAll(savedAdRepository.findAllByUserIdOrderByAdId(profile.getId()));
+        }
+
         Specification<Announcement> spec = buildSpecifications(request.getFilter());
 
         Page<Announcement> page = announcementRepo.findAll(spec, pageRequest);
 
-        List<ResAnnouncementOne> list = page.stream()
-                .map(ResAnnouncementOne::new)
-                .collect(Collectors.toList());
-
+        List<ResAnnouncementOne> list = new ArrayList<>();
+        for (Announcement announcement : page.getContent()) {
+            var one = new ResAnnouncementOne(announcement);
+            one.setIsSaved(savedList.contains(announcement.getId()));
+            list.add(one);
+        }
         return new ResPaging<>(list, new ResPagingParams(page.getNumber(), page.getTotalPages(), page.getTotalElements()));
     }
 
@@ -157,11 +172,11 @@ public class AnnouncementServiceImpl implements AnnouncementService {
                     param.setSelectValues(radioValues);
                     break;
                 case CHECKBOX:
-                    announcementParameterRepo.findByValueAndAnnouncement(parent.getCode(), announcement)
+                    announcementParameterRepo.findByKeyAndAnnouncement(parent.getCode(), announcement)
                             .ifPresent(parameter -> {
                                 List<String> multiValue = Optional.ofNullable(parameter.getMultiValue()).orElse(Collections.emptyList());
                                 List<ResSpecializationParam.ParamValue> checkboxValues = childParams.stream()
-                                        .map(child -> multiValue.contains(child.getCode()) && CoreUtils.isPresent(parameter.getValue())
+                                        .map(child -> multiValue.contains(child.getCode())
                                                 ? new ResSpecializationParam.ParamValue(child, child.getValue())
                                                 : new ResSpecializationParam.ParamValue(child))
                                         .collect(Collectors.toList());
@@ -185,6 +200,75 @@ public class AnnouncementServiceImpl implements AnnouncementService {
                 .build();
     }
 
+    @Override
+    public ResMyAnnouncementList announcementMy() {
+        AuthUser authUser = GlobalVar.getAuthUser();
+        UserProfile profile = authUser.getProfile();
+        List<Announcement> list = announcementRepo.findAllByUser(profile);
+        List<ResAnnouncementOne> activeList = new ArrayList<>();
+        List<ResAnnouncementOne> archiveList = new ArrayList<>();
+        for (Announcement announcement : list) {
+            if (BaseStatus.ACTIVE.equals(announcement.getStatus())) {
+                activeList.add(new ResAnnouncementOne(announcement));
+            } else {
+                archiveList.add(new ResAnnouncementOne(announcement));
+            }
+        }
+        return new ResMyAnnouncementList(activeList, archiveList);
+    }
+
+    @Override
+    public SuccessMessage toggleSaved(ReqLongId request) throws InvalidUserException {
+        boolean isAdded = this.checkSaved(request.getId());
+        return new SuccessMessage(messageSingleton.getMessage(isAdded ? MessageKey.ADD_AD_SUCCESS : MessageKey.REMOVE_AD_SUCCESS));
+    }
+
+
+    @Override
+    public SuccessMessage addArchive(ReqLongId request) {
+        Announcement announcement = findById(request.getId());
+        announcement.setStatus(BaseStatus.INACTIVE);
+        announcementRepo.save(announcement);
+        return new SuccessMessage(messageSingleton.getMessage(MessageKey.SUCCESS));
+    }
+
+    @Override
+    public ResMySavedAnnouncementList mySavedAnnouncement() {
+        List<Long> savedAnnoucementIdList = savedAdRepository.findAllByUserIdOrderByAdId(GlobalVar.getAuthUser().getProfile().getId());
+        List<Announcement> list = announcementRepo.findAllByIdIn(savedAnnoucementIdList);
+        List<ResAnnouncementOne> jobList = new ArrayList<>();
+        List<ResAnnouncementOne> proposalList = new ArrayList<>();
+        for (Announcement announcement : list) {
+            if (AnnouncementType.CANDIDATE.equals(announcement.getType())) {
+                proposalList.add(new ResAnnouncementOne(announcement));
+            } else {
+                jobList.add(new ResAnnouncementOne(announcement));
+            }
+        }
+        return new ResMySavedAnnouncementList(jobList, proposalList);
+    }
+
+    public boolean checkSaved(Long announcementId) {
+
+        UserProfile user = GlobalVar.getAuthUser().getProfile();
+
+        Announcement announcement = findById(announcementId);
+
+        Optional<SavedAd> optional = savedAdRepository.findByUserAndAd(user, announcement);
+
+        if (optional.isPresent()) {
+            savedAdRepository.delete(optional.get());
+            return false;
+        } else {
+            savedAdRepository.save(new SavedAd(user, announcement));
+            return true;
+        }
+    }
+
+    private Announcement findById(Long id) {
+        return announcementRepo.findById(id)
+                .orElseThrow(() -> new javax.persistence.EntityNotFoundException(messageSingleton.getMessage(MessageKey.ENTITY_NOT_FOUND)));
+    }
 
     private Specification<Announcement> buildSpecifications(ReqAnnouncement.Filter filter) throws EntityNotFoundException {
 
@@ -232,11 +316,11 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     }
 
     public Specification<Announcement> hasJobCategory(Specialization specialization) {
-        return (root, query, cb) -> CoreUtils.isEmpty(specialization) ? null : cb.equal(root.get("category"), specialization);
+        return (root, query, cb) -> CoreUtils.isEmpty(specialization) ? null : cb.equal(root.get("specialization"), specialization);
     }
 
     public Specification<Announcement> hasAmount(Long from, Long to) {
-        return (root, query, cb) -> CoreUtils.isEmpty(from) && CoreUtils.isEmpty(to) ? null : cb.between(root.get("amount"), from, to);
+        return (root, query, cb) -> CoreUtils.isEmpty(from) && CoreUtils.isEmpty(to) ? null : cb.between(root.get("price"), from, to);
     }
 
     public Specification<Announcement> hasCurrency(CurrencyType type) {

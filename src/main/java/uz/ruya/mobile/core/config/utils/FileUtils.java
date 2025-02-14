@@ -59,4 +59,9 @@ public class FileUtils {
         return img;
     }
 
+
+    public static String avatarPath(String name){
+        return baseFileURl + "/static/avatar/"+name+".png";
+    }
+
 }

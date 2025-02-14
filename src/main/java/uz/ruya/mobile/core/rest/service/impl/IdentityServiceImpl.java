@@ -552,16 +552,19 @@ public class IdentityServiceImpl implements IdentityService {
 
     private UserDBO getUser(User authUser) {
         UserDBO user = new UserDBO();
-        user.setId(authUser.getId());
-        user.setUserNO(authUser.getUserNO());
-        user.setUsername(authUser.getUsername());
+        user.setRegistrationDate(authUser.getCreatedAt());
         user.setFirstName(authUser.getFirstName());
+        user.setIsPremium(authUser.getIsPremium());
+        user.setUsername(authUser.getUsername());
         user.setLastName(authUser.getLastName());
+        user.setUserNO(authUser.getUserNO());
+        user.setStatus(authUser.getStatus());
+        user.setGender(authUser.getGender());
         user.setEmail(authUser.getEmail());
         user.setPhone(authUser.getPhone());
         user.setAge(authUser.getAge());
-        user.setStatus(authUser.getStatus());
-        user.setGender(authUser.getGender());
+        user.setId(authUser.getId());
+        user.setFcmToken(null);
         return user;
     }
 

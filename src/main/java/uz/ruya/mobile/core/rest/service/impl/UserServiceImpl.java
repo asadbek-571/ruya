@@ -2,11 +2,15 @@ package uz.ruya.mobile.core.rest.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import uz.ruya.mobile.core.auth.AuthUser;
+import uz.ruya.mobile.core.auth.UserDBO;
+import uz.ruya.mobile.core.config.core.GlobalVar;
 import uz.ruya.mobile.core.config.core.SuccessMessage;
 import uz.ruya.mobile.core.message.MessageSingleton;
 import uz.ruya.mobile.core.rest.entity.user.UserProfile;
 import uz.ruya.mobile.core.rest.enums.BaseStatus;
 import uz.ruya.mobile.core.rest.peyload.req.user.ReqSpecialization;
+import uz.ruya.mobile.core.rest.peyload.res.user.ResUser;
 import uz.ruya.mobile.core.rest.repo.user.UserProfileRepo;
 import uz.ruya.mobile.core.rest.service.UserService;
 
@@ -45,7 +49,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public SuccessMessage attachAvatar(ReqSpecialization request) {
-        return null;
+        return new SuccessMessage();
+    }
+
+    @Override
+    public ResUser me() {
+        AuthUser authUser = GlobalVar.getAuthUser();
+        UserProfile profile = authUser.getProfile();
+        UserDBO user = authUser.getUser().getUser();
+        return new ResUser(profile, user);
     }
 
 }

@@ -6,6 +6,7 @@ import uz.ruya.mobile.core.rest.enums.BaseStatus;
 import uz.ruya.mobile.core.rest.enums.UserGender;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -24,10 +25,9 @@ public class UserDBO implements Serializable {
     private String phone;
     private String email;
     private Integer age;
-    private String tin;
-    private String pinfl;
-    private String docSerial;
-    private String docNumber;
+    private String fcmToken;
+    private Boolean isPremium;
+    private LocalDateTime registrationDate;
     private BaseStatus status = BaseStatus.BLOCKED;
     private UserGender gender = UserGender.UNKNOWN;
 }

@@ -10,6 +10,7 @@ import uz.ruya.mobile.core.rest.entity.address.Address;
 import uz.ruya.mobile.core.rest.entity.specialization.Specialization;
 import uz.ruya.mobile.core.rest.entity.user.UserProfile;
 import uz.ruya.mobile.core.rest.enums.AnnouncementType;
+import uz.ruya.mobile.core.rest.enums.BaseStatus;
 import uz.ruya.mobile.core.rest.enums.CurrencyType;
 
 import javax.persistence.*;
@@ -43,6 +44,10 @@ public class Announcement extends BaseEntityLong {
     @Enumerated(EnumType.STRING)
     @Column(name = "currency")
     private CurrencyType currency;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private BaseStatus status;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type")

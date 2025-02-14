@@ -24,7 +24,13 @@ public class UserController implements UserEndpoint {
 
     @Override
     public ResponseEntity<?> me() {
-        return GenericResponse.success(20000, "success");
+        try {
+            var result = userService.me();
+            return GenericResponse.success(40000, "Success", result);
+        } catch (Throwable th) {
+            Logger.error(th);
+            return GenericResponse.error(20000, messageSingleton.getMessage(MessageKey.UNKNOWN_ERROR));
+        }
     }
 
 

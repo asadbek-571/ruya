@@ -244,4 +244,5 @@ public interface BaseURI {
     String ABOUT = "/about";
     String CURRENCY = "/currency";
     String ADDRESS = "/address";
+    String ARCHIVE = "/archive";
 }

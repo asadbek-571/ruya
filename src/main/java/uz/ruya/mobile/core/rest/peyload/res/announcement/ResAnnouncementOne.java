@@ -13,8 +13,6 @@ import uz.ruya.mobile.core.rest.peyload.base.ResImg;
 import uz.ruya.mobile.core.rest.peyload.res.ResAmount;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  Asadbek Kushakov 1/6/2025 3:04 PM 
@@ -33,6 +31,7 @@ public class ResAnnouncementOne implements Serializable {
     private ResAmount amount;
     private ResImg icon;
     private Boolean isApplied = false;
+    private Boolean isSaved = false;
     private Integer appliedQty;
     private String addressName;
 
