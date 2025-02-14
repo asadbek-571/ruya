@@ -48,6 +48,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             "/api/v1/auth/sign/refresh",
             "/api/v1/auth/sign/code/resend",
             "/api/v1/auth/sign/agreement",
+            "/api/v1/auth/sign/forget/password",
             "/api/v1/auth/sign/encrypt/password"
     };
 

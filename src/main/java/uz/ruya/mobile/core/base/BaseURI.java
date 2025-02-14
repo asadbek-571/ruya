@@ -245,4 +245,5 @@ public interface BaseURI {
     String CURRENCY = "/currency";
     String ADDRESS = "/address";
     String ARCHIVE = "/archive";
+    String FORGET = "/forget";
 }

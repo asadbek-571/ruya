@@ -10,6 +10,7 @@ import uz.ruya.mobile.core.message.MessageKey;
 import uz.ruya.mobile.core.message.MessageSingleton;
 import uz.ruya.mobile.core.rest.endpoint.IdentEndpoint;
 import uz.ruya.mobile.core.rest.peyload.req.auth.*;
+import uz.ruya.mobile.core.rest.peyload.req.auth.ReqChangePassword;
 import uz.ruya.mobile.core.rest.service.IdentityService;
 
 import javax.servlet.http.HttpServletResponse;
@@ -117,6 +118,32 @@ public class IdentController implements IdentEndpoint {
             return GenericResponse.success(40000, "Success", result);
         } catch (NotAuthorizationException e) {
             return GenericResponse.error(20401, e.getMessage());
+        } catch (Throwable th) {
+            Logger.error(th);
+            return GenericResponse.error(20000, "Неизвестная ошибка");
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> changePassword(ReqChangePassword request) {
+        try {
+            var result = service.changePassword(request);
+            return GenericResponse.success(40000, "Success", result);
+        } catch (DecodeDataException | EntityNotFoundException | SignInitPasswordIncorrectException th) {
+            return GenericResponse.error(20000, th.getMessage());
+        } catch (Throwable th) {
+            Logger.error(th);
+            return GenericResponse.error(20000, "Неизвестная ошибка");
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> forgetPassword(ReqForgetPassword request) {
+        try {
+            var result = service.forgetPassword(request);
+            return GenericResponse.success(40000, "Success", result);
+        } catch (DecodeDataException | SignInitPasswordValidationException | EntityNotFoundException th) {
+            return GenericResponse.error(20000, th.getMessage());
         } catch (Throwable th) {
             Logger.error(th);
             return GenericResponse.error(20000, "Неизвестная ошибка");

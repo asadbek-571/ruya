@@ -20,6 +20,8 @@ import uz.ruya.mobile.core.rest.enums.BaseStatus;
 import uz.ruya.mobile.core.rest.enums.Headers;
 import uz.ruya.mobile.core.rest.enums.SignStatus;
 import uz.ruya.mobile.core.rest.enums.UserRoleType;
+import uz.ruya.mobile.core.rest.peyload.req.auth.ReqChangePassword;
+import uz.ruya.mobile.core.rest.peyload.req.auth.ReqForgetPassword;
 import uz.ruya.mobile.core.rest.peyload.req.auth.ReqPassword;
 import uz.ruya.mobile.core.rest.peyload.res.auth.*;
 import uz.ruya.mobile.core.rest.repo.UserRoleRepo;
@@ -144,7 +146,7 @@ public class IdentityServiceImpl implements IdentityService {
 
         SignInit sign = this.checkSign(identity);
 
-        final String pass = this.getDecryptedPass(sign, password);
+        final String pass = this.getDecryptedPass(sign.getPrivateKey(), password);
 
         if (!CoreUtils.checkPassword(pass)) {
             throw new SignInitPasswordValidationException(messageSingleton.getMessage(MessageKey.INCORRECT_PASSWORD));
@@ -272,7 +274,6 @@ public class IdentityServiceImpl implements IdentityService {
         }
     }
 
-
     @Override
     public ResTokenRefresh tokenRefresh(UUID accessToken, HttpServletResponse httpServletResponse) throws NotAuthorizationException {
 
@@ -311,6 +312,48 @@ public class IdentityServiceImpl implements IdentityService {
         }
     }
 
+    @Override
+    public SuccessMessage changePassword(ReqChangePassword request) throws DecodeDataException, SignInitPasswordIncorrectException, EntityNotFoundException {
+
+        AuthUser authUser = GlobalVar.getAuthUser();
+        UserProfile profile = authUser.getProfile();
+
+        User user = userRepo.findById(profile.getUuid())
+                .orElseThrow(() -> new EntityNotFoundException(messageSingleton.getMessage(MessageKey.USER_NOT_FOUND)));
+
+        UserAccess access = user.getAccess();
+
+        final String oldPass = this.getDecryptedPass(access.getPrivateKey(), request.getOldPassword());
+
+        if (!passwordEncoder.matches(oldPass, authUser.getPassword())) {
+            throw new SignInitPasswordIncorrectException(messageSingleton.getMessage(MessageKey.INCORRECT_PASSWORD));
+        }
+
+        final String newPass = this.getDecryptedPass(access.getPrivateKey(), request.getNewPassword());
+        user.setPassword(passwordEncoder.encode(newPass));
+        userRepo.saveAndFlush(user);
+
+        return new SuccessMessage(messageSingleton.getMessage(MessageKey.SUCCESS));
+    }
+
+    @Override
+    public SuccessMessage forgetPassword(ReqForgetPassword request) throws DecodeDataException, SignInitPasswordValidationException, EntityNotFoundException {
+        SignInit sign = signInitRepo.findByIdAndStatus(request.getIdentity(), SignStatus.VERIFIED)
+                .orElseThrow(() -> new EntityNotFoundException(messageSingleton.getMessage(MessageKey.ENTITY_NOT_FOUND)));
+
+        final String pass = this.getDecryptedPass(sign.getPrivateKey(), request.getPassword());
+
+        if (!CoreUtils.checkPassword(pass)) {
+            throw new SignInitPasswordValidationException(messageSingleton.getMessage(MessageKey.INCORRECT_PASSWORD));
+        }
+
+        User user = userRepo.findById(sign.getId()).orElseThrow(() -> new EntityNotFoundException(messageSingleton.getMessage(MessageKey.USER_NOT_FOUND)));
+        user.setPassword(passwordEncoder.encode(pass));
+        userRepo.saveAndFlush(user);
+
+        return new SuccessMessage(messageSingleton.getMessage(MessageKey.SUCCESS));
+    }
+
     private SignInit checkSign(UUID identity) throws SignInitNotFoundException, SignInitExpireException, SignInitStatusIncorrectException {
 
         SignInit sign = this.getSignByIdentity(identity);
@@ -345,7 +388,7 @@ public class IdentityServiceImpl implements IdentityService {
         boolean isFraudCheckEnabled = propertiesService.isFraudSignIn();
         fraudValidator.isFraudSingIn(isFraudCheckEnabled, username, userIdStr, deviceId, deviceModel);
 
-        final String pass = this.getDecryptedPass(sign, password);
+        final String pass = this.getDecryptedPass(sign.getPrivateKey(), password);
 
         if (CoreUtils.isPresent(authUser.getPassword())) {
             if (!passwordEncoder.matches(pass, authUser.getPassword())) {
@@ -453,9 +496,9 @@ public class IdentityServiceImpl implements IdentityService {
         return sign;
     }
 
-    private String getDecryptedPass(SignInit sign, String password) throws DecodeDataException {
+    private String getDecryptedPass(String privateKeyStr, String password) throws DecodeDataException {
         try {
-            PrivateKey privateKey = cipherUtility.decodePrivateKey(sign.getPrivateKey());
+            PrivateKey privateKey = cipherUtility.decodePrivateKey(privateKeyStr);
             return cipherUtility.decrypt(password, privateKey);
         } catch (final Exception e) {
             throw new DecodeDataException(messageSingleton.getMessage(MessageKey.DATA_DECODING_ERROR));

@@ -3,7 +3,9 @@ package uz.ruya.mobile.core.rest.service;
 import uz.ruya.mobile.core.auth.UserDBOMain;
 import uz.ruya.mobile.core.config.core.SuccessMessage;
 import uz.ruya.mobile.core.config.excaption.*;
+import uz.ruya.mobile.core.rest.peyload.req.auth.ReqForgetPassword;
 import uz.ruya.mobile.core.rest.peyload.req.auth.ReqPassword;
+import uz.ruya.mobile.core.rest.peyload.req.auth.ReqChangePassword;
 import uz.ruya.mobile.core.rest.peyload.res.auth.*;
 
 import javax.management.relation.RoleNotFoundException;
@@ -86,4 +88,9 @@ public interface IdentityService {
     ) throws NotAuthorizationException;
 
     SuccessMessage encPassword(ReqPassword request);
+
+    SuccessMessage changePassword(ReqChangePassword request) throws DecodeDataException, SignInitPasswordIncorrectException, EntityNotFoundException;
+
+    SuccessMessage forgetPassword(ReqForgetPassword request) throws DecodeDataException, SignInitPasswordValidationException, EntityNotFoundException;
+
 }

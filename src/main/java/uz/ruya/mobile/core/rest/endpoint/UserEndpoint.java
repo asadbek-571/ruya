@@ -11,6 +11,7 @@ import uz.ruya.mobile.core.base.BaseURI;
 import uz.ruya.mobile.core.config.core.SuccessMessage;
 import uz.ruya.mobile.core.config.doc.DocController;
 import uz.ruya.mobile.core.config.doc.DocMethod;
+import uz.ruya.mobile.core.rest.peyload.req.user.ReqEditProfile;
 import uz.ruya.mobile.core.rest.peyload.req.user.ReqSpecialization;
 import uz.ruya.mobile.core.rest.peyload.res.user.ResUser;
 
@@ -36,4 +37,12 @@ public interface UserEndpoint {
     @PostMapping(BaseURI.ATTACH + BaseURI.AVATAR)
     ResponseEntity<?> attachAvatar(@RequestBody ReqSpecialization request);
 
+    @DocMethod(
+            summary = "Edit Profile",
+            responseCode = "200",
+            description = "Operation success",
+            content = @Content(schema = @Schema(implementation = SuccessMessage.class))
+    )
+    @PostMapping(BaseURI.EDIT + BaseURI.PROFILE)
+    ResponseEntity<?> editProfile(@RequestBody ReqEditProfile request);
 }

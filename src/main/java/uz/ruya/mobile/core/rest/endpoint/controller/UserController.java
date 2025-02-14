@@ -8,6 +8,7 @@ import uz.ruya.mobile.core.config.logger.Logger;
 import uz.ruya.mobile.core.message.MessageKey;
 import uz.ruya.mobile.core.message.MessageSingleton;
 import uz.ruya.mobile.core.rest.endpoint.UserEndpoint;
+import uz.ruya.mobile.core.rest.peyload.req.user.ReqEditProfile;
 import uz.ruya.mobile.core.rest.peyload.req.user.ReqSpecialization;
 import uz.ruya.mobile.core.rest.service.UserService;
 
@@ -38,6 +39,17 @@ public class UserController implements UserEndpoint {
     public ResponseEntity<?> attachAvatar(ReqSpecialization request) {
         try {
             var result = userService.attachAvatar(request);
+            return GenericResponse.success(40000, "Success", result);
+        } catch (Throwable th) {
+            Logger.error(th);
+            return GenericResponse.error(20000, messageSingleton.getMessage(MessageKey.UNKNOWN_ERROR));
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> editProfile(ReqEditProfile request) {
+        try {
+            var result = userService.editProfile(request);
             return GenericResponse.success(40000, "Success", result);
         } catch (Throwable th) {
             Logger.error(th);

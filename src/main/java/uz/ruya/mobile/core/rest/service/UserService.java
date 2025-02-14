@@ -2,6 +2,7 @@ package uz.ruya.mobile.core.rest.service;
 
 import uz.ruya.mobile.core.config.core.SuccessMessage;
 import uz.ruya.mobile.core.rest.entity.user.UserProfile;
+import uz.ruya.mobile.core.rest.peyload.req.user.ReqEditProfile;
 import uz.ruya.mobile.core.rest.peyload.req.user.ReqSpecialization;
 import uz.ruya.mobile.core.rest.peyload.res.user.ResUser;
 
@@ -13,4 +14,6 @@ public interface UserService {
     SuccessMessage attachAvatar(ReqSpecialization request);
 
     ResUser me();
+
+    SuccessMessage editProfile(ReqEditProfile request);
 }

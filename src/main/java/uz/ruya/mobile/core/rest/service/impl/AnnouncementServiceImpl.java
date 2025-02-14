@@ -9,7 +9,6 @@ import uz.ruya.mobile.core.auth.AuthUser;
 import uz.ruya.mobile.core.config.core.GlobalVar;
 import uz.ruya.mobile.core.config.core.SuccessMessage;
 import uz.ruya.mobile.core.config.excaption.EntityNotFoundException;
-import uz.ruya.mobile.core.config.excaption.InvalidUserException;
 import uz.ruya.mobile.core.config.utils.CoreUtils;
 import uz.ruya.mobile.core.config.utils.DateUtils;
 import uz.ruya.mobile.core.message.MessageKey;
@@ -218,7 +217,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     }
 
     @Override
-    public SuccessMessage toggleSaved(ReqLongId request) throws InvalidUserException {
+    public SuccessMessage toggleSaved(ReqLongId request) {
         boolean isAdded = this.checkSaved(request.getId());
         return new SuccessMessage(messageSingleton.getMessage(isAdded ? MessageKey.ADD_AD_SUCCESS : MessageKey.REMOVE_AD_SUCCESS));
     }
@@ -239,10 +238,12 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         List<ResAnnouncementOne> jobList = new ArrayList<>();
         List<ResAnnouncementOne> proposalList = new ArrayList<>();
         for (Announcement announcement : list) {
+            ResAnnouncementOne one = new ResAnnouncementOne(announcement);
+            one.setIsSaved(true);
             if (AnnouncementType.CANDIDATE.equals(announcement.getType())) {
-                proposalList.add(new ResAnnouncementOne(announcement));
+                proposalList.add(one);
             } else {
-                jobList.add(new ResAnnouncementOne(announcement));
+                jobList.add(one);
             }
         }
         return new ResMySavedAnnouncementList(jobList, proposalList);

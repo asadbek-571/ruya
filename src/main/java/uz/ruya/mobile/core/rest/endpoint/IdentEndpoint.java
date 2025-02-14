@@ -86,6 +86,24 @@ public interface IdentEndpoint {
     ResponseEntity<?> tokenRefresh(@RequestBody ReqTokenRefresh request, HttpServletResponse httpServletResponse);
 
     @DocMethod(
+            summary = "Change Password",
+            responseCode = "200",
+            description = "Operation success",
+            content = @Content(schema = @Schema(implementation = SuccessMessage.class))
+    )
+    @PostMapping(BaseURI.CHANGE + BaseURI.PASSWORD)
+    ResponseEntity<?> changePassword(@RequestBody ReqChangePassword request);
+
+    @DocMethod(
+            summary = "Forget Password",
+            responseCode = "200",
+            description = "Operation success",
+            content = @Content(schema = @Schema(implementation = SuccessMessage.class))
+    )
+    @PostMapping(BaseURI.FORGET + BaseURI.PASSWORD)
+    ResponseEntity<?> forgetPassword(@RequestBody ReqForgetPassword request);
+
+    @DocMethod(
             summary = "front uchunmas!!!",
             responseCode = "200",
             description = "Operation success",
